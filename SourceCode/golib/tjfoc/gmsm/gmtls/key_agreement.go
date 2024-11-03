@@ -27,7 +27,7 @@ import (
 
 	"tjfoc/gmsm/x509"
 
-	"golang.org/x/crypto/curve25519"
+	"tjfoc/gmsm/curve25519"
 )
 
 var errClientKeyExchange = errors.New("tls: invalid ClientKeyExchange message")

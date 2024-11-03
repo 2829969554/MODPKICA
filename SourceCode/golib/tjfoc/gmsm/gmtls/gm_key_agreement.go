@@ -17,7 +17,7 @@ import (
 	"tjfoc/gmsm/sm2"
 	"tjfoc/gmsm/x509"
 
-	"golang.org/x/crypto/curve25519"
+	"tjfoc/gmsm/curve25519"
 )
 
 //// hashForServerKeyExchange hashes the given slices and returns their digest
