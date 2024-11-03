@@ -2,6 +2,8 @@ package main
 import(
 	"net/http"
 	"tjfoc/gmsm/gmtls"
+	"tjfoc/gmsm/x509"
+	"io/ioutil"
 	"fmt"
 	"log"
 )
@@ -34,9 +36,21 @@ func main(){
 	    log.Fatal(rsaerr)
 	}
 
+    // 信任的根证书
+    certPool := x509.NewCertPool()
+    cacert, errpool := ioutil.ReadFile("castore.crt")
+    if errpool != nil {
+        log.Fatal(errpool)
+    }
+    certPool.AppendCertsFromPEM(cacert)
+
+
 	config ,_:=gmtls.NewBasicAutoSwitchConfig(&sigCert, &encCert,&rsaCert)
 	config.CipherSuites = []uint16{gmtls.GMTLS_ECC_SM4_GCM_SM3,gmtls.GMTLS_ECDHE_SM4_GCM_SM3,gmtls.GMTLS_ECDHE_SM4_CBC_SM3,gmtls.GMTLS_ECC_SM4_CBC_SM3,gmtls.TLS_RSA_WITH_AES_128_GCM_SHA256}
 	config.PreferServerCipherSuites = true
+	config.RootCAs = certPool
+	config.ClientCAs = certPool
+	
 	ln, err3 := gmtls.Listen("tcp", ":443", config)
 	if err3 != nil {
 	    log.Fatal(err3)
