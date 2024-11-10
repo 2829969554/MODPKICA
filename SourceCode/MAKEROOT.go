@@ -713,6 +713,7 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
  } 
 
  // 将证书文件保存到ROOT目录 
+/*
  certOut, err := os.Create(MODPKI_rootdir+"root.crt")  
  if err != nil {  
  fmt.Println("ROOT无法创建证书文件：", err)  
@@ -720,7 +721,7 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
  }  
  pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: rootderBytes})  
  certOut.Close()  
-
+*/
  // 将证书文件保存到WebPublic\CRT公开副本目录
  certOut2, err := os.Create(MODPKI_WebPublicCRTdir + template.SerialNumber.Text(16)+ ".crt")  
  if err != nil {  
@@ -749,24 +750,24 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
  certOut33.Close()  
 
 if(Keyalgorithm =="RSA"){
-    saveRSAPrivateKey(RSAprivateKey,MODPKI_rootdir + "root.key")
+    //saveRSAPrivateKey(RSAprivateKey,MODPKI_rootdir + "root.key")
     saveRSAPrivateKey(RSAprivateKey,MODPKI_rootdir + template.SerialNumber.Text(16) + ".key")
     saveRSAPrivateKey(RSAprivateKey,MODPKI_keydir + template.SerialNumber.Text(16) + ".key")
 }
 if(Keyalgorithm =="ECC"){
-    saveECCPrivateKey(ECCprivateKey,MODPKI_rootdir + "root.key")
+    //saveECCPrivateKey(ECCprivateKey,MODPKI_rootdir + "root.key")
     saveECCPrivateKey(ECCprivateKey,MODPKI_rootdir + template.SerialNumber.Text(16) + ".key")
     saveECCPrivateKey(ECCprivateKey,MODPKI_keydir + template.SerialNumber.Text(16) + ".key")
 }
 if(Keyalgorithm =="SM2"){
-    saveSM2PrivateKey(SM2privateKey,MODPKI_rootdir + "root.key")
+    //saveSM2PrivateKey(SM2privateKey,MODPKI_rootdir + "root.key")
     saveSM2PrivateKey(SM2privateKey,MODPKI_rootdir + template.SerialNumber.Text(16) + ".key")
     saveSM2PrivateKey(SM2privateKey,MODPKI_keydir + template.SerialNumber.Text(16) + ".key")
 }
 
 ags:=[]string {"newcert",template.SerialNumber.Text(16),"R", "V","0","null",template.SerialNumber.Text(16),Keyalgorithm,}
-    cmd2:=exec.Command(MODAUTOEXE, "init")  
-    cmd2.CombinedOutput() 
+//    cmd2:=exec.Command(MODAUTOEXE, "init")  
+//    cmd2.CombinedOutput() 
     cmd3:=exec.Command(MODAUTOEXE, ags...)  
     cmd3.CombinedOutput() 
     cmd4:=exec.Command(MODrootGETcrl,)  

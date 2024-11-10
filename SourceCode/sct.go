@@ -10,7 +10,7 @@ import(
 	"strconv"
 	"log"
 )
-//更新日期：2024年10月19日18时
+//更新日期：2024年11月10日21时
 
 //模拟生成随机SCT的签名参数值 仅用于生成测试证书  仅用算法验证。无法通过浏览器验证SCT签名，浏览器报错 From unkone CTlogs，因为浏览器没有内置我自己生成的Ctlog公钥（无法修改浏览器）
 //待签名数据为颁发者证书公钥的SHA256值和使用者证书公钥的SHA256值
@@ -61,6 +61,44 @@ func SCTGenerateSignature(IssuerPublicKeySH256 []byte,UserPublicKeySH256 []byte,
     tmp = append(tmp,b...)
     */
     return tmp
+}
+
+
+func GetHash(id int) (text string){
+    switch(id){
+        case 0:
+            return "None"
+        case 1:
+            return "MD5"
+        case 2:
+            return "SHA1"
+        case 3:
+            return "SHA224"
+        case 4:
+            return "SHA256"
+        case 5:
+            return "SHA384"
+        case 6:
+            return "SHA512"
+        default:
+            return "NULL"
+    }
+    return "NULL"
+}
+func GetSigntype(id int) (text string){
+    switch(id){
+        case 0:
+            return "anonymous"
+        case 1:
+            return "RSA"
+        case 2:
+            return "DSA"
+        case 3:
+            return "ECDSA"
+        default:
+            return "NULL"
+    }
+    return "NULL"
 }
 
 // SCT 代表一个 Signed Certificate Timestamp 的结构
@@ -133,9 +171,15 @@ func (thisSCT *SCT) CreateSCT()(status bool,data []byte){
 //解析单独子SCT
 func (thisSCT *SCT) Parse(sct []byte) (err bool){
 	parts := SplitWithDelimiter(sct, 0x00)
+	/*
+	fmt.Println("数量",len(parts))
+	for _, part := range parts {
+		fmt.Println(fmt.Sprintf("%x",part))
+	}
+	*/
 	//fmt.Println(len(parts))
 	//SCT V1  长度有两种 13或者15 13的签名是合成在一起，15的分两段用00间隔
-	if(len(parts)==13 || len(parts)==15 || len(parts)==17){
+	if(len(parts)==13 || len(parts)==15 || len(parts)==17 || len(parts)==19  || len(parts) > 19){
 		thisSCT.Raw= sct
 		thisSCT.SCTlenth= int(parts[0][0])
 		thisSCT.Version= int(parts[1][0]) 
@@ -161,6 +205,22 @@ func (thisSCT *SCT) Parse(sct []byte) (err bool){
 			thisSCT.Signature = append(thisSCT.Signature,parts[15]...)
 			thisSCT.Signature = append(thisSCT.Signature,parts[16]...)
 		}
+		if(len(parts)==19){
+			thisSCT.Signature = append(thisSCT.Signature,parts[13]...)
+			thisSCT.Signature = append(thisSCT.Signature,parts[14]...)
+			thisSCT.Signature = append(thisSCT.Signature,parts[15]...)
+			thisSCT.Signature = append(thisSCT.Signature,parts[16]...)
+			thisSCT.Signature = append(thisSCT.Signature,parts[17]...)
+			thisSCT.Signature = append(thisSCT.Signature,parts[18]...)
+		}
+
+		if(len(parts) > 19){
+			thisSCT.Signature = append(thisSCT.Signature,parts[13]...)
+			for i := 13; i < len(parts); i++ {
+				thisSCT.Signature = append(thisSCT.Signature,parts[i]...)
+			}
+		}
+
 		return true
 	}
 	return false
@@ -272,10 +332,6 @@ func (thisSCT *SCTList) CreateSCTList()(status bool,data []byte){
 func (thisSCTlist *SCTList) Parse (mysctlist []byte)(err bool){
 	thisSCTlist.Raw= mysctlist
 	rows := SplitWithDelimiter(mysctlist,0x00)
-	/*for _, part := range rows {
-		fmt.Println("Part:", hex.EncodeToString(part))
-	}
-	*/
 	//fmt.Println(len(rows))
 	if(len(rows)>0){
 		lenth, err := strconv.ParseInt(hex.EncodeToString(rows[0]), 16,0)
@@ -284,31 +340,31 @@ func (thisSCTlist *SCTList) Parse (mysctlist []byte)(err bool){
 		}
 		thisSCTlist.Raw= mysctlist
 		thisSCTlist.SCTListlenth= int(lenth)
-		//fmt.Println("len:", len(rows),lenth)
-		//2 16 32
-		var fori,index int //3组
-		fori = int(lenth / 117)
+		var fori int //3组
+		fori = int(lenth / 116)
 		SCTstmp:= make([]SCT, fori)
-		//fmt.Println("数量:", len(SCTstmp))
-		index=	int(rows[2][0])
-		next:= 3
-		next2:= index+4
+		//fmt.Println("数量:", len(SCTstmp),"总长度",int(lenth))
 
-		next3:= 0
-		for i := 0; i < fori; i++ {
-			//3-117,118-1
-			//fmt.Println(hex.EncodeToString(mysctlist[next:next2]))
-			SCTstmp[i].Parse(mysctlist[next:next2])
-
-			if(i == fori-1){
-				break
+		if(int(rows[1][0]) == 0){
+			L1lenth,_ := strconv.ParseInt(hex.EncodeToString(rows[2]), 16,0)
+			//fmt.Println("L1长度:", L1lenth)
+			var La,Lb,Lc int
+			La = 3
+			Lb = int(L1lenth)
+			Lc = La + Lb +1
+			//fmt.Println(fmt.Sprintf("%x",mysctlist[La:Lc]))
+			SCTstmp[0].Parse(mysctlist[La:Lc])
+			for i := 1; i < fori; i++ {
+				La = Lc +1
+				L1lenth,_ = strconv.ParseInt(hex.EncodeToString(mysctlist[La:La+1]), 16,0)
+				Lb = int(L1lenth)
+				Lc = La + Lb +1
+				//fmt.Println(i,fmt.Sprintf("%x",mysctlist[La:Lc]))
+				SCTstmp[i].Parse(mysctlist[La:Lc])
 			}
-			next3= int(mysctlist[next2+1 :next2+2][0])
-			next = next + next3+(i+1)
-			index = index + next3
-			next2= index+4+2*(i+1)
 
 		}
+		
 		thisSCTlist.SCTs = SCTstmp
 		return true
 	}

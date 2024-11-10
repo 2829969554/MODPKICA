@@ -109,6 +109,9 @@ TSACERTsha1key:=MODTIMSTAMPdir+"sha1.key"
 TSACERTsha256crt:=MODTIMSTAMPdir+"sha256.crt"
 TSACERTsha256key:=MODTIMSTAMPdir+"sha256.key"
 
+//颁发者是根还是CA，MODPKICA目前支持多个根证书和多个中间CA
+IsIssuerisRoot:=false
+
     // 打开配置文件  
     file, err := os.Open(MODCONFIG)  
     if err != nil {  
@@ -177,19 +180,38 @@ fmt.Println("使用者的证书签发类型",CertKeyalgorithm)
 if(len(MODML)>=12){
     banfazheid=MODML[11]
 }
+
+//判断颁发者ID是根证书还是CA证书 IsIssuerisRoot
 if(banfazheid!="root"){
     _, err := os.Stat(MODPKI_cadir+banfazheid+".crt") 
-    if os.IsNotExist(err) {  
-        //不存在
-       banfazhepath= MODPKI_rootdir+"root"
+    if os.IsNotExist(err) {
+        //不存在CA  
+        _, errR := os.Stat(MODPKI_rootdir+banfazheid+".crt") 
+        if os.IsNotExist(errR) {  
+            //ROOT不存在
+           IsIssuerisRoot = false
+           banfazhepath= MODPKI_rootdir+"root"
+           fmt.Println("出现错误，此ID既不是根证书也不是中间CA证书，不允许操作。（%s）",banfazheid)
+           os.Exit(0)
+           return 
+
+         } else {  
+            //ROOT存在
+             IsIssuerisRoot = true
+             banfazhepath= MODPKI_rootdir+banfazheid
+         } 
      } else {  
-        //存在
+        //存在CA
+         IsIssuerisRoot = false
          banfazhepath= MODPKI_cadir+banfazheid
      }  
 }else{
+   //字符串root 等于默认根证书的id
+   IsIssuerisRoot = true
    banfazhepath= MODPKI_rootdir+"root" 
 }
 
+IsIssuerisRoot = IsIssuerisRoot
  // 读取证书文件  
  rootPEM, err := ioutil.ReadFile(banfazhepath+".crt")  
  if err != nil {  

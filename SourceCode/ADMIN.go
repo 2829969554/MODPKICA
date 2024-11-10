@@ -54,7 +54,7 @@ if(1==2){
 
 if(len(MODML)==1){
 	fmt.Println("***************MOD-PKI-CA系统功能列表****************")
-	fmt.Println("init ------------------------------------初始化环境签发根证书ROOT")
+	fmt.Println("init ------------------------------------初始化环境签发根证书(ROOT)")
 	fmt.Println("                     （执行本操作后将自动化自动执行initOCSP和initTIMSTAMP）")
 	fmt.Println("")
 	fmt.Println("initOCSP --------------------------------初始化OCSP签名专用证书")
@@ -62,6 +62,7 @@ if(len(MODML)==1){
 	fmt.Println("            （人工操作，可空参数SHA1 或 SHA256）指定算法更新，默认两者同时更新")
 	fmt.Println("")
 	fmt.Println("list ------------------------------------查看所有证书")
+	fmt.Println("makeroot --------------------------------签发新根证书(ROOT)-同时存在多个根证书")
 	fmt.Println("signCERT --------------------------------签发证书")
 	fmt.Println("RevokeCERT ------------------------------吊销证书")
 	fmt.Println("signCRL ---------------------------------签发吊销列表")
@@ -73,8 +74,115 @@ if(len(MODML)==1){
 
 //fmt.Println("命令行参数数量:",len(MODML))
 
-if(MODML[1]=="init"){
+if(MODML[1]=="init" || MODML[1]=="INIT"){
 	fmt.Println("初始化新的根证书环境")
+	fmt.Println("输入根证书参数后请按回车键，如留空可直接按回车")
+	question := []string{
+		"请输入证书公共名称(CN): ",
+		"请输入组织名称(O): ",
+		"请输入部门名称(OU): ",
+		"请输入国家名称(C) 例如CN、US:",
+		"请输入省级地区名称(S):",
+		"请输入市级城市名称(L):",
+		"请输入街道名称(STREET):",
+		"请输入地区邮政编码(PostalCode):",
+		"请输入任意身份标识码(SERIALNUMBER):",
+	}
+	questionid := []string{"CN", "O", "OU", "C", "S", "L", "STREET", "PostalCode", "SERIALNUMBER"}
+
+ scanner := bufio.NewScanner(os.Stdin)  
+ var inputs []string  
+  
+ for i := 0; i < 9; i++ {  
+	 fmt.Print(question[i])  
+	 scanner.Scan()  
+	 input := scanner.Text()  
+	 inputs = append(inputs, questionid[i]+"="+input)  
+ }  
+  
+ var finalString string  
+
+ for _, input := range inputs {  
+ 	 //空格把改为%
+	 input=strings.Replace(input, " ", "%", -1)
+	 finalString += input + ","
+ }  
+ lastCommaIndex:= strings.LastIndex(finalString, ",")
+ finalString    = finalString[:lastCommaIndex]
+ //fmt.Println(finalString) 
+
+	keybit := ""
+	hash := "sha1"
+	Keyalgorithm:= "RSA"
+	fmt.Print("请输入密钥算法（RSA-ECC-SM2）：")
+	fmt.Scanln(&Keyalgorithm) 
+	if(Keyalgorithm == "RSA"){
+		fmt.Print("请输入密钥位数（1024-2048-4096-8192）：")
+		fmt.Scanln(&keybit) 
+		fmt.Print("请输入哈希算法（sha1,sha256,sha384,sha512,SHA256RSAPSS,SHA384RSAPSS,SHA512RSAPSS）：")
+		fmt.Scanln(&hash) 
+	}
+	if(Keyalgorithm == "DSA"){
+		fmt.Print("请输入密钥位数（1024-2048-4096-8192）：")
+		fmt.Scanln(&keybit) 
+		fmt.Print("请输入哈希算法（sha1,sha256,sha384,sha512）：")
+		fmt.Scanln(&hash) 
+	}
+	if(Keyalgorithm == "ECC"){
+		fmt.Print("请输入密钥位数（256-384-521）：")
+		fmt.Scanln(&keybit) 
+		fmt.Print("请输入哈希算法（sha1,sha256,sha384,sha512）：")
+		fmt.Scanln(&hash) 
+	}
+	if(Keyalgorithm == "SM2"){
+		fmt.Println("请输入密钥位数（256）：256")//没得选
+		keybit = "256"
+		fmt.Println("请输入哈希算法（SM3）：SM3")
+		hash = "SM3"
+	}
+	
+    cmd2:=exec.Command(MODAUTOEXE, "init")  
+    cmd2.CombinedOutput() 
+    
+	 // 命令行参数  
+	 var args []string
+	 args=[]string{finalString,keybit,hash,Keyalgorithm} 
+	 // 创建一个*Cmd对象，表示要执行的命令  
+	 cmd := exec.Command(MODTC+"\\MAKEROOT.EXE", args...)  
+	  
+	 // 运行命令并等待它完成  
+	 output, err := cmd.CombinedOutput()  
+	 if err != nil {  
+		 fmt.Println("命令执行出错:", err)  
+	 }  
+	 // 打印命令的输出结果  
+	 fmt.Println(string(output)) 
+
+	 args=[]string{"initOCSP",Keyalgorithm}
+	 cmd = exec.Command(MODTC+"\\ADMIN.EXE", args...)  
+	 // 运行命令并等待它完成  
+	 output, err = cmd.CombinedOutput()  
+	 if err != nil {  
+		 fmt.Println("命令执行出错:", err)  
+	 }  
+	 // 打印命令的输出结果  
+	 fmt.Println(string(output))
+
+	 args=[]string{"initTIMSTAMP",Keyalgorithm}
+	 cmd = exec.Command(MODTC+"\\ADMIN.EXE", args...)  
+	 // 运行命令并等待它完成  
+	 output, err = cmd.CombinedOutput()  
+	 if err != nil {  
+		 fmt.Println("命令执行出错:", err)  
+	 }  
+	 // 打印命令的输出结果  
+	 fmt.Println(string(output))
+
+	os.Exit(0)
+}
+
+if(MODML[1]=="makeroot" || MODML[1]=="MAKEROOT"){
+	fmt.Println("签发新根证书(ROOT)-系统允许同时存在多个根证书")
 	fmt.Println("输入根证书参数后请按回车键，如留空可直接按回车")
 	question := []string{
 		"请输入证书公共名称(CN): ",
@@ -154,29 +262,9 @@ if(MODML[1]=="init"){
 	 }  
 	 // 打印命令的输出结果  
 	 fmt.Println(string(output)) 
-
-	 args=[]string{"initOCSP",Keyalgorithm}
-	 cmd = exec.Command(MODTC+"\\ADMIN.EXE", args...)  
-	 // 运行命令并等待它完成  
-	 output, err = cmd.CombinedOutput()  
-	 if err != nil {  
-		 fmt.Println("命令执行出错:", err)  
-	 }  
-	 // 打印命令的输出结果  
-	 fmt.Println(string(output))
-
-	 args=[]string{"initTIMSTAMP",Keyalgorithm}
-	 cmd = exec.Command(MODTC+"\\ADMIN.EXE", args...)  
-	 // 运行命令并等待它完成  
-	 output, err = cmd.CombinedOutput()  
-	 if err != nil {  
-		 fmt.Println("命令执行出错:", err)  
-	 }  
-	 // 打印命令的输出结果  
-	 fmt.Println(string(output))
-
-	os.Exit(0)
+	 os.Exit(0)
 }
+
 if(MODML[1]=="list" || MODML[1]=="LIST" || MODML[1]=="ls" || MODML[1]=="LS"){
 	fmt.Println("查看当前所有证书数量和信息")
     // 打开文件  
@@ -600,7 +688,7 @@ if(MODML[1]=="verifyCERT"  || MODML[1]=="verify" || MODML[1]=="verifycert"){
 }
 
 if(MODML[1]=="VERSION" || MODML[1]=="version"  || MODML[1]=="ver"  || MODML[1]=="VER"){
-	fmt.Println("MOD PKI CA 4.0 \r\n Version:202410271455")
+	fmt.Println("MOD PKI CA 4.0 \r\n Version:202411032208")
 	os.Exit(0)
 }
 

@@ -78,7 +78,7 @@ func modmakecrl(ctype string,IssureID string,MODPKI_rootdir string,MODPKI_cadir 
  // 读取证书文件  
  dqusepath:=""
  if(ctype=="R"){
-    dqusepath=MODPKI_rootdir+"root"
+    dqusepath=MODPKI_rootdir+IssureID
  }
  if(ctype=="C"){
     dqusepath=MODPKI_cadir+IssureID

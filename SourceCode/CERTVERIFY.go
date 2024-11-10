@@ -22,7 +22,7 @@ gox509 "crypto/x509"
     "crypto/elliptic"
     "net/http"
     "os"
-    "bufio"
+    //"bufio"
     "time"
     "math/big"
     "crypto/x509/pkix"
@@ -504,7 +504,7 @@ func main(){
         }
     }
 
-
+    ShowPkixExtension(dmcert.Extensions)
 
     fmt.Println("\n\n")
     fmt.Println("证书签名：\n        ",hex.EncodeToString(dmcert.Signature),"\n")
@@ -526,6 +526,7 @@ func main(){
         CheckCRL(dmcert.SerialNumber,dmcert.CRLDistributionPoints)
         CheckOCSP(dmcert.SerialNumber,dmcert.OCSPServer,dmcert)
     }
+
 
 
 
@@ -557,10 +558,76 @@ func main(){
   fmt.Println("签名哈希                    ： ",fmt.Sprintf("%x",Pubkeysha256))
 
   
-  fmt.Printf("\nPress Enter to continue...")
-  bufio.NewReader(os.Stdin).ReadBytes('\n')
+  //fmt.Printf("\nPress Enter to continue...")
+
+  //bufio.NewReader(os.Stdin).ReadBytes('\n')
 
 }
+
+
+
+//解析X509扩展-未知属性OID
+func ShowPkixExtension(data []pkix.Extension){
+    fmt.Println("")
+    for _, row := range data {
+        if(row.Id[0]==2){
+            continue;
+        }
+        if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,5,5,7,1,1})){
+            continue;
+        }
+        if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,311,21,1})){
+            fmt.Println(fmt.Sprintf("  CA版本:\n        V%d.0",row.Value[2]))
+            fmt.Println("")
+            continue;
+        }
+        if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,4,2})){
+            fmt.Println("SCT列表:\n        ")
+            var mylist SCTList
+            index := bytes.IndexByte(row.Value, 0x82)
+            if(index == -1){
+                fmt.Println(fmt.Sprintf("%x",row.Value))
+                continue;
+            }
+            remainingData := row.Value[index+3:]
+            //fmt.Println(fmt.Sprintf("%x",remainingData))
+            if(mylist.Parse(remainingData)){
+                for _, mySCT := range mylist.SCTs {
+                    fmt.Println("        日志版本: ",fmt.Sprintf("V%d",mySCT.Version+1))
+                    fmt.Println("      日志标识符: ",fmt.Sprintf("%x",mySCT.LogID))
+                    fmt.Println("          时间戳: ",time.Unix(0, int64(mySCT.Timestamp)*1000000))
+                    fmt.Println("        签名类型: ",GetSigntype(mySCT.Signtype) + "-" +GetHash(mySCT.Hash))
+                    fmt.Println("            签名: ",fmt.Sprintf("%x",mySCT.Signature))
+                    fmt.Println("")
+
+                }
+            }
+            continue;
+        }       
+        if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,4,5})){
+            fmt.Println("公钥列表:\n        ")
+            chunks := bytes.Split(row.Value, []byte{0x00, 0x00})
+            for _, pubkeys := range chunks {
+                hash:=sha256.New()
+                hash.Write(pubkeys)
+                fmt.Println(fmt.Sprintf("         公钥标识符: %x",hash.Sum(nil)))
+                fmt.Println(fmt.Sprintf("           签名公钥: %x",pubkeys))
+                fmt.Println("")
+            }
+            continue;
+        }
+        if(row.Critical){
+            fmt.Println(row.Id,"(关键):\n        ",fmt.Sprintf("%x",row.Value))
+            fmt.Println("")
+        }else{
+            fmt.Println(row.Id,":\n        ",fmt.Sprintf("%x",row.Value))
+            fmt.Println("")
+        }
+        
+
+    }
+}
+
 
 //检查在线证书状态协议
 func CheckOCSP(certid *big.Int,OCSP_URL []string,dmcert *x509.Certificate)(CertIsok bool){
