@@ -9,6 +9,7 @@ import(
 	"encoding/hex"
 	"strconv"
 	"log"
+	"bytes"
 )
 //更新日期：2024年11月11日14时
 
@@ -43,7 +44,7 @@ func SCTGenerateSignature(IssuerPublicKeySH256 []byte,UserPublicKeySH256 []byte,
 		if err != nil {
 			log.Fatal(err)
 		}
-		if(len(tmp) == 70){
+		if(bytes.Index(tmp,[]byte{0x00}) == -1){
 			break;
 		}
 	}
