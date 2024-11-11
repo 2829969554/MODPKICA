@@ -504,7 +504,7 @@ func main(){
         }
     }
 
-    ShowPkixExtension(dmcert.Extensions)
+    ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId)
 
     fmt.Println("\n\n")
     fmt.Println("证书签名：\n        ",hex.EncodeToString(dmcert.Signature),"\n")
@@ -567,7 +567,9 @@ func main(){
 
 
 //解析X509扩展-未知属性OID
-func ShowPkixExtension(data []pkix.Extension){
+func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPublicKeySH256 []byte){
+    var SCTPublicKeyBytes [][]byte
+    var PublicSCTs []SCT
     fmt.Println("")
     for _, row := range data {
         if(row.Id[0]==2){
@@ -581,6 +583,22 @@ func ShowPkixExtension(data []pkix.Extension){
             fmt.Println("")
             continue;
         }
+
+        if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,4,5})){
+            fmt.Println("公钥列表:\n        ")
+            chunks := bytes.Split(row.Value, []byte{0x00, 0x00})
+            SCTPublicKeyBytes = make([][]byte, len(chunks))
+            for Ea, pubkeys := range chunks {
+                SCTPublicKeyBytes[Ea] = pubkeys
+                hash:=sha256.New()
+                hash.Write(pubkeys)
+                fmt.Println(fmt.Sprintf("         公钥标识符: %x",hash.Sum(nil)))
+                fmt.Println(fmt.Sprintf("           签名公钥: %x",pubkeys))
+                fmt.Println("")
+            }
+            continue;
+        }
+
         if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,4,2})){
             fmt.Println("SCT列表:\n        ")
             var mylist SCTList
@@ -589,9 +607,11 @@ func ShowPkixExtension(data []pkix.Extension){
                 fmt.Println(fmt.Sprintf("%x",row.Value))
                 continue;
             }
+            //fmt.Println("我的公钥:",len(SCTPublicKeyBytes))
             remainingData := row.Value[index+3:]
             //fmt.Println(fmt.Sprintf("%x",remainingData))
             if(mylist.Parse(remainingData)){
+                PublicSCTs = mylist.SCTs
                 for _, mySCT := range mylist.SCTs {
                     fmt.Println("        日志版本: ",fmt.Sprintf("V%d",mySCT.Version+1))
                     fmt.Println("      日志标识符: ",fmt.Sprintf("%x",mySCT.LogID))
@@ -604,18 +624,8 @@ func ShowPkixExtension(data []pkix.Extension){
             }
             continue;
         }       
-        if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,4,5})){
-            fmt.Println("公钥列表:\n        ")
-            chunks := bytes.Split(row.Value, []byte{0x00, 0x00})
-            for _, pubkeys := range chunks {
-                hash:=sha256.New()
-                hash.Write(pubkeys)
-                fmt.Println(fmt.Sprintf("         公钥标识符: %x",hash.Sum(nil)))
-                fmt.Println(fmt.Sprintf("           签名公钥: %x",pubkeys))
-                fmt.Println("")
-            }
-            continue;
-        }
+
+
         if(row.Critical){
             fmt.Println(row.Id,"(关键):\n        ",fmt.Sprintf("%x",row.Value))
             fmt.Println("")
@@ -625,6 +635,39 @@ func ShowPkixExtension(data []pkix.Extension){
         }
         
 
+    }
+
+    if(len(SCTPublicKeyBytes) == 3 && len(PublicSCTs) == 3 ){
+        fmt.Println("")
+        fmt.Println("此证书符合证书透明度策略验证条件:")
+        fmt.Println("")
+        for Ei := 0; Ei < len(PublicSCTs); Ei++ {
+            
+        
+            pubkey,_ := x509.ParsePKIXPublicKey(SCTPublicKeyBytes[Ei])
+            TimestampHexStr := fmt.Sprintf("%x", PublicSCTs[Ei].Timestamp) //将时间戳转hex文本
+            //fmt.Println("xxx",TimestampHexStr)
+            TimestampHexBytes,_ := hex.DecodeString("0"+TimestampHexStr) //这里的0为填充，时间戳Byte为7位，开通填充0补足8bitText
+
+            PreSignedData:= []byte{}
+            PreSignedData = append(PreSignedData,IssuerPublicKeySH256...)
+            PreSignedData = append(PreSignedData,UserPublicKeySH256...)
+            PreSignedData = append(PreSignedData,[]byte{0x00,0x00}...)  //间隔符
+            PreSignedData = append(PreSignedData,TimestampHexBytes...)  //时间戳
+            h := sha256.New()
+            h.Write(PreSignedData)
+            hash := h.Sum(nil)
+            //fmt.Println(fmt.Sprintf("%x",TimestampHexBytes),fmt.Sprintf("%x",hash[:]),fmt.Sprintf("%x",PublicSCTs[Ei].Signature[1:]))
+            fmt.Println("    日志标识符 :",fmt.Sprintf("%x", PublicSCTs[Ei].LogID))
+            fmt.Println("        序列号 :",fmt.Sprintf("%x", TimestampHexBytes))
+            fmt.Println("        SHA256 :",fmt.Sprintf("%x", hash[:]))
+            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true){
+                fmt.Println("      验证状态 : 此SCT签名有效。")
+            }else{
+                fmt.Println("       验证状态: 无效签名，此SCT签名无法验证。")  
+            }
+            fmt.Println("")
+        }
     }
 }
 

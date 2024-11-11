@@ -10,7 +10,7 @@ import(
 	"strconv"
 	"log"
 )
-//更新日期：2024年11月10日21时
+//更新日期：2024年11月11日14时
 
 //模拟生成随机SCT的签名参数值 仅用于生成测试证书  仅用算法验证。无法通过浏览器验证SCT签名，浏览器报错 From unkone CTlogs，因为浏览器没有内置我自己生成的Ctlog公钥（无法修改浏览器）
 //待签名数据为颁发者证书公钥的SHA256值和使用者证书公钥的SHA256值
@@ -32,14 +32,24 @@ func SCTGenerateSignature(IssuerPublicKeySH256 []byte,UserPublicKeySH256 []byte,
 
 	*SCTlogPublicKey,_ =x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
 
-	hash := sha256.Sum256(PreSignedData)
+	h := sha256.New()
+    h.Write(PreSignedData)
+	hash := h.Sum(nil)
 
-	tmp, err = ecdsa.SignASN1(rand.Reader,privateKey, hash[:])
-	if err != nil {
-		log.Fatal(err)
+
+	for {
+		tmp = []byte{}
+		tmp, err = ecdsa.SignASN1(rand.Reader,privateKey, hash[:])
+		if err != nil {
+			log.Fatal(err)
+		}
+		if(len(tmp) == 70){
+			break;
+		}
 	}
 
 	fmt.Println("SCT ID:",fmt.Sprintf("%x",PreSCT.LogID))
+	fmt.Println("PreSign-sha256:",fmt.Sprintf("%x",hash[:]))
 	fmt.Println("SCT Signature:",fmt.Sprintf("%x",tmp))
 
 	if(ecdsa.VerifyASN1(&privateKey.PublicKey,hash[:],tmp)){
@@ -184,16 +194,31 @@ func (thisSCT *SCT) Parse(sct []byte) (err bool){
 		thisSCT.SCTlenth= int(parts[0][0])
 		thisSCT.Version= int(parts[1][0]) 
 		thisSCT.LogID= parts[2]
-		
-		timestamp, err := strconv.ParseUint(hex.EncodeToString(parts[6]), 16, 64)
+		timeindex := 0
+		if(len(parts[6])==6){
+			timeindex = 6
+		}else{
+			if(len(parts[8])==6){
+				timeindex = 8
+			}else{
+				if(len(parts[10])==6){
+					timeindex = 10
+				}else{
+					timeindex = 12
+				}
+			}
+		}
+		//fmt.Println("时间",hex.EncodeToString(parts[timeindex]))
+		timestamp, err := strconv.ParseUint(hex.EncodeToString(parts[timeindex]), 16, 64)
 		if err != nil {
-			fmt.Println("错误",err,hex.EncodeToString(parts[6]))
+			fmt.Println("错误",err,hex.EncodeToString(parts[timeindex]))
 		}
 	
 		thisSCT.Timestamp= timestamp
-		thisSCT.Hash= int(parts[10][0])
-		thisSCT.Signtype= int(parts[10][1])
-		thisSCT.Signature= parts[12]
+		thisSCT.Hash= int(parts[timeindex+4][0])
+		thisSCT.Signtype= int(parts[timeindex+4][1])
+		thisSCT.Signature= parts[timeindex+6]
+		/*
 		//如果是15就将两段数据合成一起
 		if(len(parts)==15){
 			thisSCT.Signature = append(thisSCT.Signature,parts[13]...)
@@ -213,10 +238,10 @@ func (thisSCT *SCT) Parse(sct []byte) (err bool){
 			thisSCT.Signature = append(thisSCT.Signature,parts[17]...)
 			thisSCT.Signature = append(thisSCT.Signature,parts[18]...)
 		}
-
-		if(len(parts) > 19){
-			thisSCT.Signature = append(thisSCT.Signature,parts[13]...)
-			for i := 13; i < len(parts); i++ {
+		*/
+		if(len(parts) >= 15){
+			thisSCT.Signature = append(thisSCT.Signature,parts[timeindex+7]...)
+			for i := timeindex+7; i < len(parts); i++ {
 				thisSCT.Signature = append(thisSCT.Signature,parts[i]...)
 			}
 		}
