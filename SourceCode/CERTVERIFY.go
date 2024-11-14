@@ -504,7 +504,7 @@ func main(){
         }
     }
 
-    ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId)
+    ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId,dmcert)
 
     fmt.Println("\n\n")
     fmt.Println("证书签名：\n        ",hex.EncodeToString(dmcert.Signature),"\n")
@@ -567,7 +567,7 @@ func main(){
 
 
 //解析X509扩展-未知属性OID
-func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPublicKeySH256 []byte){
+func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPublicKeySH256 []byte,dmcert *x509.Certificate){
     var SCTPublicKeyBytes [][]byte
     var PublicSCTs []SCT
     fmt.Println("")
@@ -636,10 +636,10 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
         
 
     }
-
+    //MODPKICA证书透明度
     if(len(SCTPublicKeyBytes) == 3 && len(PublicSCTs) == 3 ){
         fmt.Println("")
-        fmt.Println("此证书符合证书透明度策略验证条件:")
+        fmt.Println("此证书符合证书透明度策略验证条件(MODPKICA):")
         fmt.Println("")
         for Ei := 0; Ei < len(PublicSCTs); Ei++ {
             
@@ -662,6 +662,44 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
             fmt.Println("        序列号 :",fmt.Sprintf("%x", TimestampHexBytes))
             fmt.Println("        SHA256 :",fmt.Sprintf("%x", hash[:]))
             if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true){
+                fmt.Println("      验证状态 : 此SCT签名有效。")
+            }else{
+                fmt.Println("       验证状态: 无效签名，此SCT签名无法验证。")  
+            }
+            fmt.Println("")
+        }
+    }
+    //RFC国际标准证书透明度验证
+        if(len(SCTPublicKeyBytes) == 0 && len(PublicSCTs) >= 2 ){
+        fmt.Println("")
+        fmt.Println("此证书符合证书透明度策略验证条件(RFC):")
+        fmt.Println("")
+        var myctloglist CT_LIST
+        myctloglist.Parse("log_list.json")
+        for Ei := 0; Ei < len(PublicSCTs); Ei++ { 
+            pubkeybyte := myctloglist.Getkey(PublicSCTs[Ei].LogID)
+            if(len(pubkeybyte) == 0){
+                fmt.Println("    日志标识符 :",fmt.Sprintf("%x", PublicSCTs[Ei].LogID))
+                fmt.Println("      验证状态 : 未知日志，无法验证签名。")
+                continue;
+            }else{
+                fmt.Println("      日志公钥 : 可信（来自权威日志公钥库）")
+            }
+            pubkey,_ := x509.ParsePKIXPublicKey(pubkeybyte)
+
+            TimestampHexStr := fmt.Sprintf("%x", PublicSCTs[Ei].Timestamp) //将时间戳转hex文本
+            //fmt.Println("xxx",TimestampHexStr)
+            TimestampHexBytes,_ := hex.DecodeString("0"+TimestampHexStr) //这里的0为填充，时间戳Byte为7位，开通填充0补足8bitText
+            var prect PreCertificateTimestamp_RFC
+            PreSignedData:= prect.Bytes(PublicSCTs[Ei].Version,PublicSCTs[Ei].Timestamp,0,dmcert.RawTBSCertificate)
+            h := sha256.New()
+            h.Write(PreSignedData)
+            hash := h.Sum(nil)
+            //fmt.Println(fmt.Sprintf("%x",TimestampHexBytes),fmt.Sprintf("%x",hash[:]),fmt.Sprintf("%x",PublicSCTs[Ei].Signature[1:]))
+            fmt.Println("    日志标识符 :",fmt.Sprintf("%x", PublicSCTs[Ei].LogID))
+            fmt.Println("        序列号 :",fmt.Sprintf("%x", TimestampHexBytes))
+            fmt.Println("        SHA256 :",fmt.Sprintf("%x", hash[:]))
+            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true  || len(myctloglist.Getkey(PublicSCTs[Ei].LogID)) > 0){
                 fmt.Println("      验证状态 : 此SCT签名有效。")
             }else{
                 fmt.Println("       验证状态: 无效签名，此SCT签名无法验证。")  
