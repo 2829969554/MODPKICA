@@ -106,9 +106,20 @@ VERSION ---------------------------------查看当前MODPKICA版本号
 -------------------------------------------------------------------
 建立时间2023年12月9日 22:33   作者：@魔帝本尊  QQ:2829969554  
 **********************************************************************
-最新版本: MODPKICA202411142226
+最新版本: MODPKICA202411151941
 
 更新日志：
+		2024年11月15日 19:41
+		1.根据以下参考来源调整ctlogs.go中(this *PreCertificateTimestamp_RFC)Bytes()生成预签名数据
+		  参考来源https://blog.pierky.com/certificate-transparency-manually-verify-sct-with-openssl/
+		  待签名数据结构
+		  # sct_version = v1 = 0x00, 1 byte
+		  # signature_type = certificate_timestamp = 0x00, 1 byte
+		  # timestamp = 0x000001459df97d9c, 8 bytes
+		  # entry_type = x509_entry = 0x0000, 2 bytes | 0x00,0x00 = ASN.1Cert;0x00,0x01 = PreCert
+		  # x509_entry  = 0x00,0x04,0xE2  前3个字节 length of DER-encoded EE cert, 3 bytes，后面跟着DER编码x509.tbscertificate
+		  # extensions= 0x00,0x00 : none, 0-length, 2 bytes
+
 		2024年11月14日 22:26
 		1.CERTVERIFY.go增加RFC可信签名证书时间戳签名验证的流程
 

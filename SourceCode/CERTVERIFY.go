@@ -699,7 +699,7 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
             fmt.Println("    日志标识符 :",fmt.Sprintf("%x", PublicSCTs[Ei].LogID))
             fmt.Println("        序列号 :",fmt.Sprintf("%x", TimestampHexBytes))
             fmt.Println("        SHA256 :",fmt.Sprintf("%x", hash[:]))
-            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true  || len(myctloglist.Getkey(PublicSCTs[Ei].LogID)) > 0){
+            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true  || len(myctloglist.Getkey(PublicSCTs[Ei].LogID)) > 0 ){
                 fmt.Println("      验证状态 : 此SCT签名有效。")
             }else{
                 fmt.Println("       验证状态: 无效签名，此SCT签名无法验证。")  

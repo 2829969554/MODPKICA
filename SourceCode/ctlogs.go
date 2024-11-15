@@ -7,7 +7,68 @@ import(
 	"encoding/hex"
 	"encoding/base64"
 	"strconv"
+    "crypto/x509/pkix"
+    "math/big"
+    "encoding/asn1"
+    "errors"
+    "time"
 )
+type publicKeyInfo struct {
+    Raw       asn1.RawContent
+    Algorithm pkix.AlgorithmIdentifier
+    PublicKey asn1.BitString
+}
+type validity struct {
+    NotBefore, NotAfter time.Time
+}
+type tbsCertificate struct {
+    Raw                asn1.RawContent
+    Version            int `asn1:"optional,explicit,default:0,tag:0"`
+    SerialNumber       *big.Int
+    SignatureAlgorithm pkix.AlgorithmIdentifier
+    Issuer             asn1.RawValue
+    Validity           validity
+    Subject            asn1.RawValue
+    PublicKey          publicKeyInfo
+    UniqueId           asn1.BitString   `asn1:"optional,tag:1"`
+    SubjectUniqueId    asn1.BitString   `asn1:"optional,tag:2"`
+    Extensions         []pkix.Extension `asn1:"optional,explicit,tag:3"`
+}
+// removeExtension takes a DER-encoded TBSCertificate, removes the extension
+// specified by oid (preserving the order of other extensions), and returns the
+// result still as a DER-encoded TBSCertificate.  This function will fail if
+// there is not exactly 1 extension of the type specified by the oid present.
+func removeExtension(tbsData []byte, oid asn1.ObjectIdentifier) ([]byte, error) {
+    var tbs tbsCertificate
+    rest, err := asn1.Unmarshal(tbsData, &tbs)
+    if err != nil {
+        return nil, fmt.Errorf("failed to parse TBSCertificate: %v", err)
+    } else if rLen := len(rest); rLen > 0 {
+        return nil, fmt.Errorf("trailing data (%d bytes) after TBSCertificate", rLen)
+    }
+    extAt := -1
+    for i, ext := range tbs.Extensions {
+        if ext.Id.Equal(oid) {
+            if extAt != -1 {
+                return nil, errors.New("multiple extensions of specified type present")
+            }
+            extAt = i
+        }
+    }
+    if extAt == -1 {
+        return nil, errors.New("no extension of specified type present")
+    }
+    tbs.Extensions = append(tbs.Extensions[:extAt], tbs.Extensions[extAt+1:]...)
+    // Clear out the asn1.RawContent so the re-marshal operation sees the
+    // updated structure (rather than just copying the out-of-date DER data).
+    tbs.Raw = nil
+
+    data, err := asn1.Marshal(tbs)
+    if err != nil {
+        return nil, fmt.Errorf("failed to re-marshal TBSCertificate: %v", err)
+    }
+    return data, nil
+}
 
 /*
         Version      int
@@ -57,20 +118,38 @@ type PreCertificateTimestamp_RFC struct {
 }
 //PreCertificateTimestamp结构体函数 转 []byte
 func (this *PreCertificateTimestamp_RFC)Bytes(ctver int,Timestamp uint64,x509type int,X509Entry []byte)(data []byte){
-	this.SCTVersion = ctver
+	// OIDExtensionCTPoison is defined in RFC 6962 s3.1.
+    OIDExtensionCTPoison := asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 3}
+    OIDExtensionCTPoison = OIDExtensionCTPoison
+    // OIDExtensionCTSCT is defined in RFC 6962 s3.3.
+    OIDExtensionCTSCT := asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 2}
+    OIDExtensionCTSCT = OIDExtensionCTSCT
+    this.SCTVersion = ctver
 	this.SignatureType = 0
 	this.Timestamp = Timestamp
+
 	this.EntryType = x509type
+
 	this.X509Entry = X509Entry
+    this.X509Entry,_ = removeExtension(this.X509Entry,OIDExtensionCTSCT)
+
 	this.Extensions = []byte{0x00,0x00}
 	var tmp []byte
 	tmp = []byte{byte(this.SCTVersion)}
 	tmp = append(tmp,byte(this.SignatureType))
-	hexstr,_:= hex.DecodeString("0" + strconv.FormatUint(Timestamp, 16))
+	hexstr,_:= hex.DecodeString("00000" + strconv.FormatUint(this.Timestamp, 16))
+   // fmt.Println("X长度",len(hexstr))
 	tmp = append(tmp,hexstr...)
-	tmp = append(tmp,byte(x509type))
-	tmp = append(tmp,X509Entry...)
+    tmp = append(tmp,[]byte{0x00,byte(this.EntryType)}...)
+
+    hexlenstr,_:= hex.DecodeString("000" + fmt.Sprintf("%x",len(this.X509Entry)))
+    //fmt.Println(len(hexlenstr))
+
+    tmp = append(tmp,hexlenstr...)
+	tmp = append(tmp,(this.X509Entry)...)
 	tmp = append(tmp,(this.Extensions)...)
+
+    //fmt.Println(fmt.Sprintf("%x",tmp))
 	return tmp
 }
 

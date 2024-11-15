@@ -243,7 +243,19 @@ func (thisSCT *SCT) Parse(sct []byte) (err bool){
 		if(len(parts) >= 15){
 			thisSCT.Signature = append(thisSCT.Signature,parts[timeindex+7]...)
 			for i := timeindex+7; i < len(parts); i++ {
-				thisSCT.Signature = append(thisSCT.Signature,parts[i]...)
+				if(len(parts[i]) >2){
+					//fmt.Println(fmt.Sprintf("%x",parts[i][0]),parts[i][0])
+
+					if((len(parts[i])/2) %2 !=0){
+						parts[i] = append(parts[i],0x00)
+					}
+					//fmt.Println("xxx",len(parts[i]),hex.EncodeToString(parts[i]))
+					thisSCT.Signature = append(thisSCT.Signature,parts[i]...)
+				}else{
+					//thisSCT.Signature = append(thisSCT.Signature,[]byte{0x00}...)
+				}
+				
+				
 			}
 		}
 
