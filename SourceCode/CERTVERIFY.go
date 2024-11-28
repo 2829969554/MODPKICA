@@ -238,7 +238,43 @@ func main(){
         fmt.Println(" 验证证书签名、证书状态、证书有效性\n","例如 Verify.exe cert.crt")
         os.Exit(0)
     }
-    certBytespem,_ :=ioutil.ReadFile(os.Args[1])
+
+    Filename := os.Args[1]
+    containsDot := strings.Contains(Filename, ".")
+    if containsDot {
+
+        // 使用Stat函数获取文件状态
+        _, err := os.Stat(Filename)
+
+        // 判断错误类型
+        if os.IsNotExist(err) {
+            fmt.Printf("文件 %s 不存在\n", Filename)
+            os.Exit(0)
+        } else if err != nil {
+            // 处理其他可能的错误
+            fmt.Printf("在检查文件 %s 时发生错误: %v\n", Filename, err)
+            os.Exit(0)
+        } else {
+           // fmt.Printf("文件 %s 存在\n", Filename)
+        }
+
+
+    } else {
+       // fmt.Println("The string does not contain a dot.")
+        // 获取当前工作目录
+        currentDir, err := os.Getwd()
+        if err != nil {
+            // 处理错误
+            fmt.Printf("获取当前目录失败: %v\n", err)
+            os.Exit(0)
+        }
+
+        // 打印当前工作目录
+        fmt.Printf("当前工作目录是: %s\n", currentDir)
+        Filename = currentDir + "/PKI/WebPublic/CRT/" + Filename + ".crt"
+    }
+
+    certBytespem,_ :=ioutil.ReadFile(Filename)
     certpem, _ := pem.Decode(certBytespem) 
 
     var certBytes []byte
@@ -600,6 +636,7 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
         }
 
         if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,4,2})){
+            continue;
             fmt.Println("SCT列表:\n        ")
             var mylist SCTList
             index := bytes.IndexByte(row.Value, 0x82)
@@ -699,7 +736,7 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
             fmt.Println("    日志标识符 :",fmt.Sprintf("%x", PublicSCTs[Ei].LogID))
             fmt.Println("        序列号 :",fmt.Sprintf("%x", TimestampHexBytes))
             fmt.Println("        SHA256 :",fmt.Sprintf("%x", hash[:]))
-            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true  || len(myctloglist.Getkey(PublicSCTs[Ei].LogID)) > 0 ){
+            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true /* || len(myctloglist.Getkey(PublicSCTs[Ei].LogID)) > 0 */){
                 fmt.Println("      验证状态 : 此SCT签名有效。")
             }else{
                 fmt.Println("       验证状态: 无效签名，此SCT签名无法验证。")  
@@ -812,7 +849,7 @@ func CheckCRL(certid *big.Int,CRL_URL []string)(CertIsok bool){
     revokedCerts := crl.TBSCertList.RevokedCertificates
     for _, revokedCert := range revokedCerts {
         if(certid.Cmp(revokedCert.SerialNumber) ==0){
-            fmt.Println("此证书已被颁发机构吊销。（CRL） 吊销时间：",revokedCert.RevocationTime)
+            fmt.Println("          此证书已被颁发机构吊销。（CRL） 吊销时间：",revokedCert.RevocationTime)
             return true
         }      
     }

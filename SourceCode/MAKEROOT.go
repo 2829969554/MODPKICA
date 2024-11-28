@@ -246,7 +246,7 @@ MODPKI_WebPublicCRTdir:=MODTC+"\\PKI\\WebPublic\\CRT\\"
 var RSAprivateKey *rsa.PrivateKey
 var ECCprivateKey *ecdsa.PrivateKey
 var SM2privateKey *sm2.PrivateKey
-fmt.Println("AAA",Keyalgorithm,MODKbit)  
+//fmt.Println("AAA",Keyalgorithm,MODKbit)  
 
 if(Keyalgorithm =="RSA"){
      // 生成RSA密钥对  
@@ -305,7 +305,7 @@ if(Keyalgorithm =="ECC"){
     }
 }
 
-fmt.Println(RSAprivateKey,ECCprivateKey)
+//fmt.Println(RSAprivateKey,ECCprivateKey)
 
 var publicKeyDER []byte
 
@@ -589,29 +589,42 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
 
 
     //定义SCT结构体
-    var mysct SCT
+    var mysct,mysct2,mysct3 SCT
     //版本号
     mysct.Version = 0
+    mysct2.Version = 0
+    mysct3.Version = 0
     //证书透明度日志ID
     mysct.LogID = subid
+    mysct2.LogID = subid
+    mysct3.LogID = subid
     //签署实时数据戳UTC时间，精确到毫秒
     mysct.Timestamp = uint64(time.Now().UTC().UnixMilli())
+    mysct2.Timestamp = uint64(time.Now().UTC().UnixMilli())
+    mysct3.Timestamp = uint64(time.Now().UTC().UnixMilli())
     //等待签名数据的哈希算法 0:none  1:MD5  2:SHA1  3:SHA224  4:SHA256   5:SHA384  6:SHA512
     mysct.Hash = 4
+    mysct2.Hash = 4
+    mysct3.Hash = 4
     //签名算法 0:anonymous  1:RSA  2:DSA  3:ECDSA
     mysct.Signtype = 3
+    mysct2.Signtype = 3
+    mysct3.Signtype = 3
     //签名内容
     var SctPublicKey []byte
     mysct.Signature = SCTGenerateSignature(priid,subid,&mysct,&SctPublicKey)
+    mysct2.Signature = SCTGenerateSignature(priid,subid,&mysct2,&SctPublicKey)
+    mysct3.Signature = SCTGenerateSignature(priid,subid,&mysct3,&SctPublicKey)
     //fmt.Println("长度",len(mysct.Signature))
     //根据上述参数创建SCT结构数据
     mysct.CreateSCT()
-
+    mysct2.CreateSCT()
+    mysct3.CreateSCT()
     //定义并创建SCT列表结构体数据
     var mysctlist SCTList
     mysctlist = SCTList{
         //将2组SCT结构套在一起
-        SCTs: []SCT{mysct},
+        SCTs: []SCT{mysct,mysct2,mysct3},
     }
 
     //生成SCT列表 ASN.1数据  status是状态True|False   sctans1data为 SCT列表的ASN.1数据
@@ -713,7 +726,7 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
  } 
 
  // 将证书文件保存到ROOT目录 
-/*
+
  certOut, err := os.Create(MODPKI_rootdir+"root.crt")  
  if err != nil {  
  fmt.Println("ROOT无法创建证书文件：", err)  
@@ -721,7 +734,7 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
  }  
  pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: rootderBytes})  
  certOut.Close()  
-*/
+
  // 将证书文件保存到WebPublic\CRT公开副本目录
  certOut2, err := os.Create(MODPKI_WebPublicCRTdir + template.SerialNumber.Text(16)+ ".crt")  
  if err != nil {  
@@ -750,17 +763,17 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
  certOut33.Close()  
 
 if(Keyalgorithm =="RSA"){
-    //saveRSAPrivateKey(RSAprivateKey,MODPKI_rootdir + "root.key")
+    saveRSAPrivateKey(RSAprivateKey,MODPKI_rootdir + "root.key")
     saveRSAPrivateKey(RSAprivateKey,MODPKI_rootdir + template.SerialNumber.Text(16) + ".key")
     saveRSAPrivateKey(RSAprivateKey,MODPKI_keydir + template.SerialNumber.Text(16) + ".key")
 }
 if(Keyalgorithm =="ECC"){
-    //saveECCPrivateKey(ECCprivateKey,MODPKI_rootdir + "root.key")
+    saveECCPrivateKey(ECCprivateKey,MODPKI_rootdir + "root.key")
     saveECCPrivateKey(ECCprivateKey,MODPKI_rootdir + template.SerialNumber.Text(16) + ".key")
     saveECCPrivateKey(ECCprivateKey,MODPKI_keydir + template.SerialNumber.Text(16) + ".key")
 }
 if(Keyalgorithm =="SM2"){
-    //saveSM2PrivateKey(SM2privateKey,MODPKI_rootdir + "root.key")
+    saveSM2PrivateKey(SM2privateKey,MODPKI_rootdir + "root.key")
     saveSM2PrivateKey(SM2privateKey,MODPKI_rootdir + template.SerialNumber.Text(16) + ".key")
     saveSM2PrivateKey(SM2privateKey,MODPKI_keydir + template.SerialNumber.Text(16) + ".key")
 }

@@ -106,9 +106,13 @@ VERSION ---------------------------------查看当前MODPKICA版本号
 -------------------------------------------------------------------
 建立时间2023年12月9日 22:33   作者：@魔帝本尊  QQ:2829969554  
 **********************************************************************
-最新版本: MODPKICA202411151941
+最新版本: MODPKICA202411282000
 
 更新日志：
+		2024年11月28日 20:00
+		1.CERTVERIFY.go文件第639行加 continue;
+		  作用屏蔽这个小方块，有BUG，待修复
+		  
 		2024年11月15日 19:41
 		1.根据以下参考来源调整ctlogs.go中(this *PreCertificateTimestamp_RFC)Bytes()生成预签名数据
 		  参考来源https://blog.pierky.com/certificate-transparency-manually-verify-sct-with-openssl/
