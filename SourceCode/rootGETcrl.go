@@ -33,12 +33,12 @@ func main() {
 //当前执行目录
 MODTC:= filepath.Dir(ex)  
 //所有证书记录表
-MODPKI_certsfile:=MODTC+"\\PKI\\CERTS.txt"
+MODPKI_certsfile:=MODTC+"/PKI/CERTS.txt"
 
 //特定目录
-MODPKI_rootdir:=MODTC+"\\PKI\\ROOT\\"
-MODPKI_cadir:=MODTC+"\\PKI\\CA\\"
-MODPKI_WEBcrldir:=MODTC+"\\PKI\\WebPublic\\CRL\\"
+MODPKI_rootdir:=MODTC+"/PKI/ROOT/"
+MODPKI_cadir:=MODTC+"/PKI/CA/"
+MODPKI_WEBcrldir:=MODTC+"/PKI/WebPublic/CRL/"
 
 //********遍历颁发者证书
     // 打开文件  

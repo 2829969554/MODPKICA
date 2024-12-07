@@ -22,26 +22,42 @@ MODML:=os.Args
  panic(err)  
  }  
 
+
+/*
+MODPKICAENVFileName可执行文件名组
+
+0 = "MAIN.exe"
+1 = "ADMIN.exe"
+2 = "MAKEROOT.exe"
+3 = "MAKECERT.exe"
+4 = "rootGETcrl.exe"
+5 = "CERTVERIFY.exe"
+6 = "auto.exe"
+*/
+MODPKICAENVFileName :=MODPKICAGetEnv()
 //当前执行目录
 MODTC:= filepath.Dir(ex)  
 //编辑文件
-MODAUTOEXE:=MODTC+"\\PKI\\auto.exe"
+MODAUTOEXE:=MODTC+"/PKI/"+MODPKICAENVFileName[6]
 
 //签发吊销列表执行程序
-MODrootGETcrlEXE:=MODTC+"\\rootGETcrl.exe"
-
+MODrootGETcrlEXE:=MODTC+"/" +MODPKICAENVFileName[4]
+MODMAKEROOTEXE:=MODTC+"/" +MODPKICAENVFileName[2]
+MODMAKECERTEXE:=MODTC+"/" +MODPKICAENVFileName[3]
+MODADMINEXE:=MODTC+"/" +MODPKICAENVFileName[1]
+MODCERTIFYEXE:=MODTC+"/" +MODPKICAENVFileName[5]
 //所有证书记录表
-MODPKI_certsfile:=MODTC+"\\PKI\\CERTS.txt"
+MODPKI_certsfile:=MODTC+"/PKI/CERTS.txt"
 
 //特定目录
-MODPKI_rootdir:=MODTC+"\\PKI\\ROOT\\"
-MODPKI_cadir:=MODTC+"\\PKI\\CA\\"
-MODPKI_certdir:=MODTC+"\\PKI\\CERT\\"
-MODPKI_keydir:=MODTC+"\\PKI\\KEY\\"
+MODPKI_rootdir:=MODTC+"/PKI/ROOT/"
+MODPKI_cadir:=MODTC+"/PKI/CA/"
+MODPKI_certdir:=MODTC+"/PKI/CERT/"
+MODPKI_keydir:=MODTC+"/PKI/KEY/"
 
-MODPKI_WEBdir:=MODTC+"\\PKI\\WebPublic\\"
-MODPKI_WEBcrtdir:=MODTC+"\\PKI\\WebPublic\\CRT\\"
-MODPKI_WEBcrldir:=MODTC+"\\PKI\\WebPublic\\CRL\\"
+MODPKI_WEBdir:=MODTC+"/PKI/WebPublic/"
+MODPKI_WEBcrtdir:=MODTC+"/PKI/WebPublic/CRT/"
+MODPKI_WEBcrldir:=MODTC+"/PKI/WebPublic/CRL/"
 if(1==2){
 	fmt.Println(MODTC,MODPKI_certsfile,MODPKI_rootdir,MODPKI_cadir,MODPKI_certdir,MODPKI_keydir,MODPKI_WEBdir,MODPKI_WEBcrtdir,MODPKI_WEBcrldir)
 
@@ -148,7 +164,7 @@ if(MODML[1]=="init" || MODML[1]=="INIT"){
 	 var args []string
 	 args=[]string{finalString,keybit,hash,Keyalgorithm} 
 	 // 创建一个*Cmd对象，表示要执行的命令  
-	 cmd := exec.Command(MODTC+"\\MAKEROOT.EXE", args...)  
+	 cmd := exec.Command(MODMAKEROOTEXE, args...)  
 	  
 	 // 运行命令并等待它完成  
 	 output, err := cmd.CombinedOutput()  
@@ -159,7 +175,7 @@ if(MODML[1]=="init" || MODML[1]=="INIT"){
 	 fmt.Println(string(output)) 
 
 	 args=[]string{"initOCSP",Keyalgorithm}
-	 cmd = exec.Command(MODTC+"\\ADMIN.EXE", args...)  
+	 cmd = exec.Command(MODADMINEXE, args...)  
 	 // 运行命令并等待它完成  
 	 output, err = cmd.CombinedOutput()  
 	 if err != nil {  
@@ -169,7 +185,7 @@ if(MODML[1]=="init" || MODML[1]=="INIT"){
 	 fmt.Println(string(output))
 
 	 args=[]string{"initTIMSTAMP",Keyalgorithm}
-	 cmd = exec.Command(MODTC+"\\ADMIN.EXE", args...)  
+	 cmd = exec.Command(MODADMINEXE, args...)  
 	 // 运行命令并等待它完成  
 	 output, err = cmd.CombinedOutput()  
 	 if err != nil {  
@@ -253,7 +269,7 @@ if(MODML[1]=="makeroot" || MODML[1]=="MAKEROOT"){
 	 var args []string
 	 args=[]string{finalString,keybit,hash,Keyalgorithm} 
 	 // 创建一个*Cmd对象，表示要执行的命令  
-	 cmd := exec.Command(MODTC+"\\MAKEROOT.EXE", args...)  
+	 cmd := exec.Command(MODMAKEROOTEXE, args...)  
 	  
 	 // 运行命令并等待它完成  
 	 output, err := cmd.CombinedOutput()  
@@ -473,8 +489,8 @@ if(MODML[1]=="signCERT" || MODML[1]=="signcert" || MODML[1]=="signcrt" || MODML[
 	 var args []string
 	 args=[]string{finalString,keybit,hash,keyusage,exusage,certtype,zxtime,ymlisttx,iplisttx,Kernel,IssureID,Keyalgorithm} 
 	 // 创建一个*Cmd对象，表示要执行的命令  
-	 cmd := exec.Command(MODTC+"\\MAKECERT.EXE", args...)  
-	 fmt.Println(MODTC+"\\MAKECERT.EXE ",args)
+	 cmd := exec.Command(MODMAKECERTEXE, args...)  
+	 fmt.Println(MODMAKECERTEXE+" ",args)
 	 // 运行命令并等待它完成  
 	 output, err := cmd.CombinedOutput()  
 	 if err != nil {  
@@ -573,10 +589,10 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initocsp"){
 	 } 
 
 	 // 创建一个*Cmd对象，表示要执行的命令  
-	 cmd := exec.Command(MODTC+"\\MAKECERT.EXE", args...) 	  
+	 cmd := exec.Command(MODMAKECERTEXE, args...) 	  
 	 // 运行命令并等待它完成  
 	 output, _ := cmd.CombinedOutput()  
-	 fmt.Println(string(output),err)
+	 fmt.Println(string(output))
 	os.Exit(0)
 }
 
@@ -592,14 +608,14 @@ if(MODML[1]=="initTIMSTAMP" || MODML[1]=="inittimstamp" || MODML[1]=="inittimest
 		 	args= []string{"initTIMSTAMP","SHA1","RSA"}  //默认RSA
 		 } 
 		   
-		 cmd := exec.Command(MODTC+"\\ADMIN.EXE", args...) 	  
+		 cmd := exec.Command(MODADMINEXE, args...) 	  
 		 // 运行命令并等待它完成  
 		 outtext,err:=cmd.CombinedOutput()  
 		 if err != nil {
-		 	fmt.Println(err)
+		 	fmt.Println("initTIMSTAMP sha1 出错了",err)
 		 	return 
 		 }
-		 if(string(outtext)!=""){
+		 if(len(outtext) > 4){
 		 	fmt.Println(string(outtext))
 		 } 
 
@@ -609,14 +625,14 @@ if(MODML[1]=="initTIMSTAMP" || MODML[1]=="inittimstamp" || MODML[1]=="inittimest
 		 }else{
 		 	args=  []string{"initTIMSTAMP","SHA256","RSA"}  //默认RSA
 		 }  
-		 cmd = exec.Command(MODTC+"\\ADMIN.EXE", args...) 	  
+		 cmd = exec.Command(MODADMINEXE, args...) 	  
 		 // 运行命令并等待它完成  
 		 outtext,err=cmd.CombinedOutput()  
 		 if err != nil {
-		 	fmt.Println(err)
+		 	fmt.Println("initTIMSTAMP sha256 出错了",err)
 		 	return 
 		 }
-		 if(string(outtext)!=""){
+		 if(len(outtext) > 4){
 		 	fmt.Println(string(outtext))
 		 } 
 		 
@@ -626,42 +642,42 @@ if(MODML[1]=="initTIMSTAMP" || MODML[1]=="inittimstamp" || MODML[1]=="inittimest
 	 if(len(MODML)==4){
 		 args:=[]string{"initTIMSTAMP",MODML[2],MODML[3]}  
 	  	 fmt.Println("初始化TSA时间戳签名专用",MODML[2],"证书")
-		 cmd := exec.Command(MODTC+"\\MAKECERT.EXE", args...) 	  
+		 cmd := exec.Command(MODMAKECERTEXE, args...) 	  
 		 // 运行命令并等待它完成  
 		 outtext,err:=cmd.CombinedOutput()  
 		 if err != nil {
-		 	fmt.Println(err)
+		 	fmt.Println("initTIMSTAMP 出错了",err)
 		 	return 
 		 }
-		 if(string(outtext)!=""){
+		 if(len(outtext) > 4){
 		 	fmt.Println(string(outtext))
 		 }
 
 	 }
 	 if(len(MODML)==2){
 		 args:=[]string{"initTIMSTAMP","SHA1","RSA"}  
-		 cmd := exec.Command(MODTC+"\\MAKECERT.EXE", args...) 
+		 cmd := exec.Command(MODMAKECERTEXE, args...) 
 
 		 // 运行命令并等待它完成  
 		 outtext,err:=cmd.CombinedOutput()  
 		 if err != nil {
-		 	fmt.Println(err)
+		 	fmt.Println("initTIMSTAMP sha1 [2]出错了",err)
 		 	return 
 		 }
-		 if(string(outtext)!=""){
+		 if(len(outtext) > 4){
 		 	fmt.Println(string(outtext))
 		 }
 
 		 args=[]string{"initTIMSTAMP","SHA256","RSA"}  
-		 cmd = exec.Command(MODTC+"\\MAKECERT.EXE", args...) 
+		 cmd = exec.Command(MODMAKECERTEXE, args...) 
 
 		 // 运行命令并等待它完成  
 		 outtext,err=cmd.CombinedOutput()  
 		 if err != nil {
-		 	fmt.Println(err)
+		 	fmt.Println("initTIMSTAMP sha256 [2]出错了",err)
 		 	return 
 		 }
-		 if(string(outtext)!=""){
+		 if(len(outtext) > 4){
 		 	fmt.Println(string(outtext))
 		 } 
 	 }
@@ -682,15 +698,15 @@ if(MODML[1]=="verifyCERT"  || MODML[1]=="verify" || MODML[1]=="verifycert"){
 		 if(len(MODML) >=3 ){
 		 	args = append(args,MODML[2])
 		 } 
-		 cmd := exec.Command(MODTC+"\\CERTVERIFY.EXE", args...) 
+		 cmd := exec.Command(MODCERTIFYEXE, args...) 
 
 		 // 运行命令并等待它完成  
 		 outtext,err:=cmd.CombinedOutput()  
 		 if err != nil {
-		 	fmt.Println(err)
+		 	fmt.Println("CERTVERIFY 出错了",err)
 		 	return 
 		 }
-		 if(string(outtext)!=""){
+		 if(len(outtext) > 4){
 		 	fmt.Println(string(outtext))
 		 }
 
@@ -728,7 +744,7 @@ func showcalist(MODPKI_certsfile string){
     // 打开文件  
     file, err := os.Open(MODPKI_certsfile)  
     if err != nil {  
-        fmt.Println(err)  
+        fmt.Println("打开配置文件出错了",err)  
         return  
     }  
     defer file.Close()  

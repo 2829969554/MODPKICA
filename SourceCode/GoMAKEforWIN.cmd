@@ -14,10 +14,10 @@ echo 本系统目前是Windows下使用，所有代码使用GO语言编写原则
 echo 主要因为我在源码里面把执行文件名和路径写死了，如果需要跨平台运行请自行修改吧
 echo
 echo 开始编译
-go build -o ../MAIN.exe MAIN.go
-go build -o ../ADMIN.exe ADMIN.go
-go build -o ../MAKEROOT.exe MAKEROOT.go sct.go cps.go
-go build -o ../MAKECERT.exe MAKECERT.go sct.go cps.go
+go build -o ../MAIN.exe MAIN.go systemenv.go
+go build -o ../ADMIN.exe ADMIN.go systemenv.go
+go build -o ../MAKEROOT.exe MAKEROOT.go sct.go cps.go systemenv.go
+go build -o ../MAKECERT.exe MAKECERT.go sct.go cps.go systemenv.go
 go build -o ../rootGETcrl.exe rootGETcrl.go
 go build -o ../PKI/auto.exe auto.go
 go build -o ../CERTVERIFY.exe CERTVERIFY.go sct.go ctlogs.go

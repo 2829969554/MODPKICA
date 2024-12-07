@@ -87,23 +87,35 @@ MODSUCPS_Nonice:= "这是MODPKICA的证书颁发策略用户通告内容。/This
  panic(err)  
  } 
  //当前执行目录
-MODTC:= filepath.Dir(ex)  
+MODTC:= filepath.Dir(ex) 
+/*
+MODPKICAENVFileName可执行文件名组
+
+0 = "MAIN.exe"
+1 = "ADMIN.exe"
+2 = "MAKEROOT.exe"
+3 = "MAKECERT.exe"
+4 = "rootGETcrl.exe"
+5 = "CERTVERIFY.exe"
+6 = "auto.exe"
+*/
+MODPKICAENVFileName :=MODPKICAGetEnv() 
 //配置授权信息配置
-MODCONFIG:=MODTC+"\\PKI\\CONFIG.txt"
-MODAUTOEXE:=MODTC+"\\PKI\\auto.exe"
-MODrootGETcrl:=MODTC+"\\rootGETcrl.exe"
+MODCONFIG:=MODTC+"/PKI/CONFIG.txt"
+MODAUTOEXE:=MODTC+"/PKI/" + MODPKICAENVFileName[6]
+MODrootGETcrl:=MODTC+"/" +MODPKICAENVFileName[4]
 //特定目录
-MODPKI_WebPublicCRTdir:=MODTC+"\\PKI\\WebPublic\\CRT\\"
+MODPKI_WebPublicCRTdir:=MODTC+"/PKI/WebPublic/CRT/"
 
-MODPKI_ocspdir:=MODTC+"\\PKI\\OCSP\\"
+MODPKI_ocspdir:=MODTC+"/PKI/OCSP/"
 
 
-MODPKI_rootdir:=MODTC+"\\PKI\\ROOT\\" 
-MODPKI_cadir:=MODTC+"\\PKI\\CA\\" 
-MODPKI_certdir:=MODTC+"\\PKI\\CERT\\" 
-MODPKI_keydir:=MODTC+"\\PKI\\KEY\\" 
+MODPKI_rootdir:=MODTC+"/PKI/ROOT/" 
+MODPKI_cadir:=MODTC+"/PKI/CA/" 
+MODPKI_certdir:=MODTC+"/PKI/CERT/" 
+MODPKI_keydir:=MODTC+"/PKI/KEY/" 
 
-MODTIMSTAMPdir:=MODTC+"\\PKI\\TIMSTAMP\\"   //时间戳服务根目录
+MODTIMSTAMPdir:=MODTC+"/PKI/TIMSTAMP/"   //时间戳服务根目录
 TSACERTsha1crt:=MODTIMSTAMPdir+"sha1.crt" 
 TSACERTsha1key:=MODTIMSTAMPdir+"sha1.key"
 TSACERTsha256crt:=MODTIMSTAMPdir+"sha256.crt"
@@ -1669,7 +1681,7 @@ var ags []string
     cmd3:=exec.Command(MODAUTOEXE, ags...)  
     outtext,err:=cmd3.CombinedOutput() 
     if err != nil {
-        fmt.Println("添加数据出错了")
+        fmt.Println("添加数据出错了",err)
     }
     
     if(len(outtext) > 0){

@@ -45,29 +45,43 @@ func main() {
 //当前执行目录
 MODTC:= filepath.Dir(ex) 
 GOBALMODTC= MODTC
+
+/*
+MODPKICAENVFileName可执行文件名组
+
+0 = "MAIN.exe"
+1 = "ADMIN.exe"
+2 = "MAKEROOT.exe"
+3 = "MAKECERT.exe"
+4 = "rootGETcrl.exe"
+5 = "CERTVERIFY.exe"
+6 = "auto.exe"
+*/
+MODPKICAENVFileName :=MODPKICAGetEnv()
+
 //所有证书记录表
-MODPKI_certsfile:=MODTC+"\\PKI\\CERTS.txt"
+MODPKI_certsfile:=MODTC+"/PKI/CERTS.txt"
 //颁发者证书
-MODPKI_ROOTfile:=MODTC+"\\PKI\\ROOT\\root.crt"
+MODPKI_ROOTfile:=MODTC+"/PKI/ROOT/root.crt"
 //生成吊销列表工具
-MODPKI_ROOTGETCRLEXE:=MODTC+"\\rootGETcrl.exe"
+MODPKI_ROOTGETCRLEXE:=MODTC+"/"+MODPKICAENVFileName[4]
 //OCSP签名证书
-MODPKI_OCSPfile:=MODTC+"\\PKI\\OCSP\\ocsp.crt"
-MODPKI_OCSPfilekey:=MODTC+"\\PKI\\OCSP\\ocsp.key"
-MODPKI_OCSPCAs:=MODTC+"\\PKI\\CA\\"   //{uid}.crt //{uid}.key
+MODPKI_OCSPfile:=MODTC+"/PKI/OCSP/ocsp.crt"
+MODPKI_OCSPfilekey:=MODTC+"/PKI/OCSP/ocsp.key"
+MODPKI_OCSPCAs:=MODTC+"/PKI/CA/"   //{uid}.crt //{uid}.key
 //时间戳服务
-MODTIMSTAMPdir:=MODTC+"\\PKI\\TIMSTAMP\\"   //时间戳服务根目录
-MODTIMSTAMPlogdir:=MODTIMSTAMPdir+"\\log\\" //时间戳req进 rsa出log日志目录
+MODTIMSTAMPdir:=MODTC+"/PKI/TIMSTAMP/"   //时间戳服务根目录
+MODTIMSTAMPlogdir:=MODTIMSTAMPdir+"/log/" //时间戳req进 rsa出log日志目录
 TSACERTsha1crt:=MODTIMSTAMPdir+"sha1.crt" 
 TSACERTsha1key:=MODTIMSTAMPdir+"sha1.key"
 TSACERTsha256crt:=MODTIMSTAMPdir+"sha256.crt"
 TSACERTsha256key:=MODTIMSTAMPdir+"sha256.key"
 //参数配置文件
-MODCONFIG:=MODTC+"\\PKI\\CONFIG.txt"
+MODCONFIG:=MODTC+"/PKI/CONFIG.txt"
 //默认端口，具体以配置文件为准
 MODWEBPORT:="80"
 //公开访问目录
-MODWebPublic:=MODTC+"\\PKI\\WebPublic"
+MODWebPublic:=MODTC+"/PKI/WebPublic"
 
 
 
@@ -100,7 +114,7 @@ if(last18Bytes[0]==0x04 && last18Bytes[1]==0x10){
 }
 
   
- err = ioutil.WriteFile(MODTC+"\\PKI\\OCSP\\ocsp.req", REQ, 0644) // 将数据写入文件  
+ err = ioutil.WriteFile(MODTC+"/PKI/OCSP/ocsp.req", REQ, 0644) // 将数据写入文件  
  if err != nil {  
  fmt.Println("写入文件时发生错误:", err)  
  return  
@@ -211,8 +225,8 @@ fmt.Print(suijiNonce)
 	MODPKI_OCSPfilekey=MODPKI_OCSPCAs+Cbfcid+".key"
 
 	if _, err2 := os.Stat(MODPKI_OCSPfile); err2 != nil { 
-		MODPKI_OCSPfile=MODTC+"\\PKI\\ROOT\\root.crt"
-		MODPKI_OCSPfilekey=MODTC+"\\PKI\\ROOT\\root.key"
+		MODPKI_OCSPfile=MODTC+"/PKI/ROOT/root.crt"
+		MODPKI_OCSPfilekey=MODTC+"/PKI/ROOT/root.key"
 	}
 
 	// 读取现有OCSP的证书和私钥文件
@@ -350,7 +364,7 @@ if(Keytype == "SM2"){
 			 	http.Error(w, "Failed to write response", http.StatusInternalServerError)  
 			 	return  
 			 } 
- err = ioutil.WriteFile(MODTC+"\\PKI\\OCSP\\ocsp.res", ocspRespBytes, 0644)  
+ err = ioutil.WriteFile(MODTC+"/PKI/OCSP/ocsp.res", ocspRespBytes, 0644)  
 if err != nil {  
     fmt.Println("Error saving OCSP response:", err)  
     return  
@@ -390,8 +404,8 @@ return
 		 }
 		 */
 
-		 //将请求URL/CRT/root.crt中的/转为\\
-		 filePath = strings.Replace(filePath, "/", "\\\\", -1)  
+		 //将请求URL/CRT/root.crt中的/转为/
+		 filePath = strings.Replace(filePath, "/", "//", -1)  
 		 filePath = MODWebPublic + filePath
 		 // 使用os.Stat检查文件是否存在  文件存在则继续，不存在直接返回
 		 if _, err2 := os.Stat(filePath); err2 == nil {  
@@ -795,9 +809,9 @@ func SignAndDetach(content []byte, cert *x509.Certificate, privkey *rsa.PrivateK
 //RFC3161 TIMESTAMP
 func handleTimestampRequest(w http.ResponseWriter, r *http.Request) { 
 
-MODPKI_ROOTfile:=GOBALMODTC+"\\PKI\\ROOT\\root.crt"
-MODTIMSTAMPdir:=GOBALMODTC+"\\PKI\\TIMSTAMP\\" 
-MODTIMSTAMPlogdir:=MODTIMSTAMPdir+"\\log\\" //时间戳req进 rsa出log日志目录
+MODPKI_ROOTfile:=GOBALMODTC+"/PKI/ROOT/root.crt"
+MODTIMSTAMPdir:=GOBALMODTC+"/PKI/TIMSTAMP/" 
+MODTIMSTAMPlogdir:=MODTIMSTAMPdir+"/log/" //时间戳req进 rsa出log日志目录
 TSACERTsha1crt:=MODTIMSTAMPdir+"sha1.crt" 
 TSACERTsha1key:=MODTIMSTAMPdir+"sha1.key"
 TSACERTsha256crt:=MODTIMSTAMPdir+"sha256.crt"

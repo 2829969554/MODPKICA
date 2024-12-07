@@ -56,15 +56,27 @@ MODSUCPS_Nonice:= "这是MODPKICA的证书颁发策略用户通告内容。/This
  } 
  //当前执行目录
 MODTC:= filepath.Dir(ex)  
+/*
+MODPKICAENVFileName可执行文件名组
+
+0 = "MAIN.exe"
+1 = "ADMIN.exe"
+2 = "MAKEROOT.exe"
+3 = "MAKECERT.exe"
+4 = "rootGETcrl.exe"
+5 = "CERTVERIFY.exe"
+6 = "auto.exe"
+*/
+MODPKICAENVFileName :=MODPKICAGetEnv()
 //配置授权信息配置
-MODCONFIG:=MODTC+"\\PKI\\CONFIG.txt"
-MODAUTOEXE:=MODTC+"\\PKI\\auto.exe"
-MODrootGETcrl:=MODTC+"\\rootGETcrl.exe"
+MODCONFIG:=MODTC+"/PKI/CONFIG.txt"
+MODAUTOEXE:=MODTC+"/PKI/"+MODPKICAENVFileName[6]
+MODrootGETcrl:=MODTC+"/"+MODPKICAENVFileName[4]
 //特定目录
-MODPKI_rootdir:=MODTC+"\\PKI\\ROOT\\" 
-MODPKI_certdir:=MODTC+"\\PKI\\CERT\\"
-MODPKI_keydir:=MODTC+"\\PKI\\KEY\\"
-MODPKI_WebPublicCRTdir:=MODTC+"\\PKI\\WebPublic\\CRT\\"
+MODPKI_rootdir:=MODTC+"/PKI/ROOT/" 
+MODPKI_certdir:=MODTC+"/PKI/CERT/"
+MODPKI_keydir:=MODTC+"/PKI/KEY/"
+MODPKI_WebPublicCRTdir:=MODTC+"/PKI/WebPublic/CRT/"
 
     // 打开文件  
     file, err := os.Open(MODCONFIG)  

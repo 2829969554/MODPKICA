@@ -235,7 +235,7 @@ func GetHashType(SignatureAlgorithm x509.SignatureAlgorithm)(hash string,key str
 }
 func main(){
     if(len(os.Args) <2){
-        fmt.Println(" 验证证书签名、证书状态、证书有效性\n","例如 Verify.exe cert.crt")
+        fmt.Println(" 验证证书签名、证书状态、证书有效性\n","例如 CERTVERIFY.exe cert.crt")
         os.Exit(0)
     }
 

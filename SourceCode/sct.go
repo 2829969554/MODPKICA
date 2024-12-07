@@ -49,13 +49,13 @@ func SCTGenerateSignature(IssuerPublicKeySH256 []byte,UserPublicKeySH256 []byte,
 		}
 	}
 
-	fmt.Println("SCT ID:",fmt.Sprintf("%x",PreSCT.LogID))
-	fmt.Println("PreSign-sha256:",fmt.Sprintf("%x",hash[:]))
-	fmt.Println("SCT Signature:",fmt.Sprintf("%x",tmp))
-
 	if(ecdsa.VerifyASN1(&privateKey.PublicKey,hash[:],tmp)){
-		fmt.Println("SCT Verify:",true)
+		//fmt.Println("SCT Verify:",true)
 	}else{
+
+		fmt.Println("SCT ID:",fmt.Sprintf("%x",PreSCT.LogID))
+		fmt.Println("PreSign-sha256:",fmt.Sprintf("%x",hash[:]))
+		fmt.Println("SCT Signature:",fmt.Sprintf("%x",tmp))
 		fmt.Println("SCT Verify:",false)
 	}
 

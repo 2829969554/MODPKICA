@@ -23,12 +23,11 @@ func main() {
  }  
 //当前执行目录
 MODTC= filepath.Dir(ex)  
-MODCERTSdir=MODTC+"\\CERTS.txt"
-MODCERTSsmdir=MODTC+"\\CERTS.txt.sm"
+MODCERTSdir=MODTC+"/CERTS.txt"
+MODCERTSsmdir=MODTC+"/CERTS.txt.sm"
 
 
 args := os.Args
-
 
 if(len(args)==2){
 	if(args[1]=="init"){
@@ -106,7 +105,7 @@ func modrevokecert(certid string,certstatus string,certponse string,certtime str
 					newline:=words[0]+" "+ words[1] + " " + certstatus+ " " + certponse + " " + certtime + " "+ words[5] + " "+ words[6]
 					CERTSallData, _ := ioutil.ReadFile(MODCERTSdir)
 					replaced := bytes.Replace(CERTSallData, []byte(line), []byte(newline), -1)
-					os.WriteFile(MODCERTSdir, replaced, 0644)
+					os.WriteFile(MODCERTSdir, replaced, 0666)
 					fmt.Println("吊销成功")
 					return
 				}
@@ -181,13 +180,13 @@ func echonewcertsfile(){
 	}
 
 	// 写入文件
-	if err := os.WriteFile(MODCERTSdir, fileData, 0644); err != nil {
+	if err := os.WriteFile(MODCERTSdir, fileData, 0666); err != nil {
 		// 处理错误
 		fmt.Println("写出文件CERTS.txt出错：", err)
 		return
 	}
 		// 写入文件
-	if err := os.WriteFile(MODCERTSsmdir, fileData, 0644); err != nil {
+	if err := os.WriteFile(MODCERTSsmdir, fileData, 0666); err != nil {
 		// 处理错误
 		fmt.Println("写出模板文件CERTS.txt.sm出错：", err)
 		return
@@ -203,7 +202,7 @@ func modaddcert(certid string,certtype string,certstatus string,certponse string
     data := []byte(newline)  
   
     // 以追加模式打开文件，如果文件不存在则创建文件  
-    f, err := os.OpenFile(MODCERTSdir, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)  
+    f, err := os.OpenFile(MODCERTSdir, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)  
     if err != nil {  
         fmt.Println(err)  
     }  
