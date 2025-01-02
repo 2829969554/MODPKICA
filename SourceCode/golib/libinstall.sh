@@ -11,7 +11,7 @@ sudo chmod -R 755 ./*
 sudo chown -R root:root ./*
 
 sudo cp -R timestamp ${golibpath}crypto/
-sudo cp -R ocsp /${golibpath}crypto/
+sudo cp -R ocsp ${golibpath}crypto/
 sudo cp -R pkcs7 ${golibpath}crypto/x509/
 
 sudo mv ${golibpath}crypto/x509/pkix/pkix.go ${golibpath}crypto/x509/pkix/pkix.go.old
