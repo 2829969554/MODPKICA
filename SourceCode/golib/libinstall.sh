@@ -7,7 +7,7 @@ echo "Go安装目录:${GOROOT}/"
 #这里写GO的安装路径的src文件夹
 golibpath="${GOROOT}/src/"
 
-sudo chmod -R 0755 ./*
+sudo chmod -R 755 ./*
 sudo chown -R root:root ./*
 
 sudo cp -R timestamp ${golibpath}crypto/
