@@ -5,7 +5,7 @@ GOROOT=$(go env GOROOT)
 echo "Go安装目录:${GOROOT}/"
 
 #这里写GO的安装路径的src文件夹
-golibpath="${GOROOT}/../../share/go-1.22/src/"
+golibpath="${GOROOT}/src/"
 
 sudo chmod -R 0755 ./*
 sudo chown -R root:root ./*
