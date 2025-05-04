@@ -5,7 +5,7 @@ import (
     "encoding/asn1"
     "crypto/x509/pkix"
 
-    "modcrypto/gm/sm2/sm2curve"
+    "modpkica/golib/modcrypto/gm/sm2/sm2curve"
 )
 
 var (

@@ -1,7 +1,7 @@
 package timestamp
 
 import (
-	"crypto/x509/pkix"
+	"modpkica/golib/pkix"
 	"encoding/asn1"
 	"math/big"
 	"time"

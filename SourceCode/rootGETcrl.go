@@ -21,8 +21,8 @@ import (
  "crypto/rsa"  
  "crypto/ecdsa"
  //"modcrypto/hash/sm3"
- "tjfoc/gmsm/sm2"
- sm2x509 "tjfoc/gmsm/x509"
+ "modpkica/golib/tjfoc/gmsm/sm2"
+ sm2x509 "modpkica/golib/tjfoc/gmsm/x509"
 )  
   
 func main() {

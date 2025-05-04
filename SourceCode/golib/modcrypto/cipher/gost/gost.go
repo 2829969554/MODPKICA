@@ -4,7 +4,7 @@ import (
     "strconv"
     "crypto/cipher"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 type KeySizeError int

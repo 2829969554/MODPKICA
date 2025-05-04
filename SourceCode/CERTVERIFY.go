@@ -7,9 +7,9 @@ import (
     "crypto/sha1"
     "crypto/sha256"
     "crypto/sha512"
-    "crypto/ocsp"
-gox509 "crypto/x509"
-    "tjfoc/gmsm/x509"
+    "modpkica/golib/ocsp"
+gox509 "modpkica/golib/x509"
+    "modpkica/golib/tjfoc/gmsm/x509"
     "io/ioutil"
     "bytes"
     //"crypto/rand"
@@ -25,9 +25,9 @@ gox509 "crypto/x509"
     //"bufio"
     "time"
     "math/big"
-    "crypto/x509/pkix"
-    "tjfoc/gmsm/sm2"
-    "tjfoc/gmsm/sm3"
+    "modpkica/golib/pkix"
+    "modpkica/golib/tjfoc/gmsm/sm2"
+    "modpkica/golib/tjfoc/gmsm/sm3"
     "strings"
     //"crypto/x509/pkix"
 )
@@ -540,7 +540,7 @@ func main(){
         }
     }
 
-    ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId,dmcert)
+   // ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId,dmcert)
 
     fmt.Println("\n\n")
     fmt.Println("证书签名：\n        ",hex.EncodeToString(dmcert.Signature),"\n")

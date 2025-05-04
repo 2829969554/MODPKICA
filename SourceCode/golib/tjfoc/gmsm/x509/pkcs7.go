@@ -19,7 +19,7 @@ import (
 	"sort"
 	"time"
 
-	"tjfoc/gmsm/sm2"
+	"modpkica/golib/tjfoc/gmsm/sm2"
 )
 
 // PKCS7 Represents a PKCS7 structure

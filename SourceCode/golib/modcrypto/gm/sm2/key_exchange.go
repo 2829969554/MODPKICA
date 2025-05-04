@@ -5,9 +5,9 @@ import (
     "errors"
     "math/big"
 
-    "modcrypto/hash/sm3"
-    "modcrypto/kdf/smkdf"
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/hash/sm3"
+    "modpkica/golib/modcrypto/kdf/smkdf"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 // KeyExchangeB 协商第二部，用户B调用， 返回共享密钥k

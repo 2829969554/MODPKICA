@@ -4,7 +4,7 @@ import (
     "fmt"
     "crypto/cipher"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 const BlockSize = 16

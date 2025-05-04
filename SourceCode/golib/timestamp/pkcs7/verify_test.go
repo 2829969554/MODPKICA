@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
-	"crypto/x509"
+	"modpkica/golib/x509"
 	"encoding/base64"
 	"encoding/pem"
 	"io/ioutil"

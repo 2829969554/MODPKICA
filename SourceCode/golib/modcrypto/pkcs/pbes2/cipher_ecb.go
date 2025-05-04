@@ -6,7 +6,7 @@ import (
     "crypto/cipher"
     "encoding/asn1"
 
-    cryptobin_cipher "modcrypto/cipher"
+    cryptobin_cipher "modpkica/golib/modcrypto/cipher"
 )
 
 // ecb 模式加密

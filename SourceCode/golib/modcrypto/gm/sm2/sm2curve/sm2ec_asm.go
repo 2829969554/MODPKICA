@@ -9,7 +9,7 @@ import (
     "math/bits"
     "unsafe"
 
-    "golang.org/x/sys/cpu"
+    "modpkica/golib/modcrypto/cpu"
 )
 
 // p256Element is a P-256 base field element in [0, P-1] in the Montgomery

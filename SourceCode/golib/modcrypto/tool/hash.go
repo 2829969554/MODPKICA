@@ -9,16 +9,16 @@ import (
     "crypto/sha256"
     "crypto/sha512"
 
-    "modcrypto/modinit/md4"
-    "modcrypto/modinit/sha3"
-    "modcrypto/modinit/blake2s"
-    "modcrypto/modinit/blake2b"
-    "modcrypto/modinit/ripemd160"
+    "modpkica/golib/modcrypto/modinit/md4"
+    "modpkica/golib/modcrypto/modinit/sha3"
+    "modpkica/golib/modcrypto/modinit/blake2s"
+    "modpkica/golib/modcrypto/modinit/blake2b"
+    "modpkica/golib/modcrypto/modinit/ripemd160"
 
-    "modcrypto/hash/sm3"
-    "modcrypto/hash/md2"
-    "modcrypto/hash/gost/gost34112012256"
-    "modcrypto/hash/gost/gost34112012512"
+    "modpkica/golib/modcrypto/hash/sm3"
+    "modpkica/golib/modcrypto/hash/md2"
+    "modpkica/golib/modcrypto/hash/gost/gost34112012256"
+    "modpkica/golib/modcrypto/hash/gost/gost34112012512"
 )
 
 type (

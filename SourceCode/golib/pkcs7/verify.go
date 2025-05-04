@@ -2,8 +2,8 @@ package pkcs7
 
 import (
 	"crypto/subtle"
-	"crypto/x509"
-	"crypto/x509/pkix"
+	"modpkica/golib/x509"
+	"modpkica/golib/pkix"
 	"encoding/asn1"
 	"errors"
 	"fmt"

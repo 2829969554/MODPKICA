@@ -3,7 +3,7 @@ package gost34112012512
 import (
     "hash"
 
-    "modcrypto/hash/gost/gost34112012"
+    "modpkica/golib/modcrypto/hash/gost/gost34112012"
 )
 
 // GOST R 34.11-2012 512-bit hash function.

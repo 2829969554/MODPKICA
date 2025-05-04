@@ -3,7 +3,7 @@ package cipher
 import (
     "crypto/cipher"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 // CFB stream with 8 bit segment size

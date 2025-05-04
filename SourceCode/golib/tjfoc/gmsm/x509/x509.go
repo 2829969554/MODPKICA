@@ -40,11 +40,11 @@ import (
 	"strconv"
 	"time"
 
-	"tjfoc/gmsm/sm2"
+	"modpkica/golib/tjfoc/gmsm/sm2"
 
-	"tjfoc/gmsm/sm3"
-	"tjfoc/gmsm/sha3"
-	"tjfoc/gmsm/ripemd"
+	"modpkica/golib/tjfoc/gmsm/sm3"
+	"modpkica/golib/tjfoc/gmsm/sha3"
+	"modpkica/golib/tjfoc/gmsm/ripemd"
 	
 )
 

@@ -3,7 +3,7 @@
 package pkcs7
 
 import (
-	"crypto/x509"
+	"modpkica/golib/x509"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"

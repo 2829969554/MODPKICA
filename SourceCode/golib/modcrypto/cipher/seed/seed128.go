@@ -5,7 +5,7 @@ import (
     "crypto/cipher"
     "encoding/binary"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 type seed128Cipher struct {

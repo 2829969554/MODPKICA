@@ -6,8 +6,8 @@ import (
     "math/big"
     "crypto/subtle"
 
-    "modcrypto/hash/sm3"
-    "modcrypto/kdf/smkdf"
+    "modpkica/golib/modcrypto/hash/sm3"
+    "modpkica/golib/modcrypto/kdf/smkdf"
 )
 
 // KeyExchange key exchange struct, include internal stat in whole key exchange flow.

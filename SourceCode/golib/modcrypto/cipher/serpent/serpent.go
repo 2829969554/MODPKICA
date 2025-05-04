@@ -4,7 +4,7 @@ import (
     "fmt"
     "crypto/cipher"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 // BlockSize is the serpent block size in bytes.

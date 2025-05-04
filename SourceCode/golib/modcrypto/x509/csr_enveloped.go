@@ -8,9 +8,9 @@ import (
     "crypto/x509/pkix"
     "encoding/asn1"
 
-    "modcrypto/gm/sm2"
-    "modcrypto/gm/sm2/sm2curve"
-    "modcrypto/pkcs/pbes2"
+    "modpkica/golib/modcrypto/gm/sm2"
+    "modpkica/golib/modcrypto/gm/sm2/sm2curve"
+    "modpkica/golib/modcrypto/pkcs/pbes2"
 )
 
 // 别名

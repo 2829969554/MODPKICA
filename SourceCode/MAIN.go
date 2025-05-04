@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"bufio"
 	"io/ioutil"
-	"crypto/x509"
-	"crypto/x509/pkix"
+	"modpkica/golib/x509"
+	"modpkica/golib/pkix"
 	"encoding/pem"
 	"time"
 	"encoding/asn1"
@@ -21,16 +21,16 @@ import (
 	"crypto/sha1" 
 	"os/exec"
 	//"golang.org/x/crypto/ocsp"
-	"crypto/ocsp"  //如果提示没有此包就需要手动复制Go包，详情请查看ReadMe.txt
+	"modpkica/golib/ocsp"  //如果提示没有此包就需要手动复制Go包，详情请查看ReadMe.txt
 	"crypto/rsa"
 	"crypto/ecdsa"
 	"encoding/base64"  
 	//"go.mozilla.org/pkcs7" 
-	"crypto/x509/pkcs7"//如果提示没有此包就需要手动复制Go包，详情请查看ReadMe.txt
+	"modpkica/golib/pkcs7"//如果提示没有此包就需要手动复制Go包，详情请查看ReadMe.txt
 	"bytes"
 	"math/big"
     "crypto"
-    "crypto/timestamp"   
+    "modpkica/golib/timestamp"   
 )
 
 

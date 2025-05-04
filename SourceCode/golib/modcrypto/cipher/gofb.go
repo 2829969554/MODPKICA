@@ -6,7 +6,7 @@ import (
     "crypto/subtle"
     "encoding/binary"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 /**

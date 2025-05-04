@@ -16,16 +16,16 @@ import (
     "crypto/ed25519"
     "crypto/elliptic"
     "crypto/rsa"
-    "crypto/x509"
-    "crypto/x509/pkix"
+    "modpkica/golib/x509"
+    "modpkica/golib/pkix"
     "encoding/asn1"
     "encoding/pem"
 
-    "golang.org/x/crypto/cryptobyte"
-    cryptobyte_asn1 "golang.org/x/crypto/cryptobyte/asn1"
+    "modpkica/golib/modcrypto/cryptobyte"
+    cryptobyte_asn1 "modpkica/golib/modcrypto/cryptobyte/asn1"
 
-    "modcrypto/gost"
-    "modcrypto/gm/sm2"
+    "modpkica/golib/modcrypto/gost"
+    "modpkica/golib/modcrypto/gm/sm2"
 )
 
 const (

@@ -7,7 +7,7 @@ import(
     "encoding/asn1"
     "crypto/x509/pkix"
 
-    "modcrypto/tool"
+    "modpkica/golib/modcrypto/tool"
 )
 
 // 加密接口

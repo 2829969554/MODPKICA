@@ -5,8 +5,8 @@ package timestamp
 import (
 	"crypto"
 	"crypto/rand"
-	"crypto/x509"
-	"crypto/x509/pkix"
+	"modpkica/golib/x509"
+	"modpkica/golib/pkix"
 	"encoding/asn1"
 	"fmt"
 	"io"
@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"crypto/timestamp/pkcs7"
-	//"github.com/digitorus/pkcs7"
+	"modpkica/golib/timestamp/pkcs7"
+	//"github.cm/digitorus/pkcs7"
 )
 
 // FailureInfo contains the failure details of an Time-Stamp request. See

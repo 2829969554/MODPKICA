@@ -27,10 +27,10 @@ import (
 	"io"
 	"math/big"
 
-	"golang.org/x/crypto/cryptobyte"
-	cbasn1 "golang.org/x/crypto/cryptobyte/asn1"
+	"modpkica/golib/modcrypto/cryptobyte"
+	cbasn1 "modpkica/golib/modcrypto/cryptobyte/asn1"
 
-	"tjfoc/gmsm/sm3"
+	"modpkica/golib/tjfoc/gmsm/sm3"
 )
 
 var (

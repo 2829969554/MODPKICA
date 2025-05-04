@@ -21,4 +21,4 @@ sudo cp -R pkix.go ${golibpath}crypto/x509/pkix/
 
 sudo cp -R tjfoc ${golibpath}
 sudo cp -R modcrypto ${golibpath}
-sudo cp -R certificate-transparency-go ${golibpath}
+#sudo cp -R certificate-transparency-go ${golibpath}

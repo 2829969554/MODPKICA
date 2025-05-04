@@ -4,7 +4,7 @@ import (
     "strconv"
     "crypto/cipher"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 // BlockSize the sm4 block size in bytes.

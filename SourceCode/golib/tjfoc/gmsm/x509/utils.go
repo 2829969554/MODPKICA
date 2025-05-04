@@ -12,7 +12,7 @@ import (
 	"errors"
 	"math/big"
 
-	"tjfoc/gmsm/sm2"
+	"modpkica/golib/tjfoc/gmsm/sm2"
 )
 
 func ReadPrivateKeyFromPem(privateKeyPem []byte, pwd []byte) (*sm2.PrivateKey, error) {

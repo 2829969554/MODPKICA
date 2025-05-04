@@ -32,7 +32,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"tjfoc/gmsm/sm2"
+	"modpkica/golib/tjfoc/gmsm/sm2"
 )
 
 /*

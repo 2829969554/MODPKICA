@@ -1,0 +1,187 @@
+当前路径MODPKICA系统源代码目录
+--------------------------------
+本文件解释当前路径目录下的文件作用和结构
+****************************************************************
+类型      名称      描述 
+----------------------------------------------------------------
+文件夹     golib      该文件夹主要储存go的模块,编译本系统必须使用具
+					 具体请查看文件夹内ReadMe.txt描述文件
+-----------------------------------------------------------------
+
+-------------------------------------------------------------------
+-------------------------------------------------------------------
+源码文件     ADMIN.go       该文件是go语言源码编译出 ADMIN.exe 
+源码文件     MAIN.go        该文件是go语言源码编译出 MAIN.exe 
+源码文件     MAKECERT.go    该文件是go语言源码编译出 MAKECERT.exe 
+源码文件     MAKEROOT.go    该文件是go语言源码编译出 MAKEROOT.exe 
+源码文件     CERTVERIFY.go  该文件是go语言源码编译出 CERTVERIFY.exe
+
+源码文件     rootGETcrl.go  该文件是go语言源码编译出 rootGETcrl.exe 
+				以上6个源码编译成功后的可执行文件放置在 MODPKICA根目录
+
+源码文件     auto.go  	   该文件是go语言源码编译出 auto.exe 
+			此文件编译成功后的可执行文件放置在 MODPKICA根目录 下的PKI文件夹中
+
+源码文件     cps.go  	   该文件是我自己编写的功能模块 作用是生成特定的X509扩展【证书策略】ASN.1字节集
+
+源码文件     sct.go  	   该文件是我自己编写的功能模块 作用是生成特定的X509扩展【SCT列表】ASN.1字节集		
+源码文件     ctlogs.go  	   该文件是我自己编写的功能模块 作用是生成特定的SCT待签名数据ASN.1字节集		
+源码文件     ctlogtytes.go  该文件是RFC标准化结构体类型声明文件
+文本文件     log_list.json  该文件是权威SCT可信公钥库的json结构
+-------------------------------------------------------------------
+-------------------------------------------------------------------
+
+
+文件文件     go.sum  go.mod   			该文件是Go初始化环境模块
+
+文件文件     LICENSE						该文件是开源声明文件
+-------------------------------------------------------------------
+
+文件文件     GoMAKEforWIN.cmd            该文件是在window平台下一键构建MODPKICA系统的脚本，没有危险，可用文本编辑器查看
+
+文件文件     GoMAKEforlinux.sh           该文件是在linux平台下一键构建MODPKICA系统的脚本，没有危险，可用文本编辑器查看
+
+
+作用是打开就能编译MODPKICA系统所有文件，可用文本编辑器打开查看   
+-------------------------------------------------------------------
+
+
+文件   ReadMe.txt     你正在查看........
+
+-------------------------------------------------------------------
+建立时间2023年12月9日 22:33   作者：@魔帝本尊  QQ:2829969554  
+**********************************************************************
+最新版本: MODPKICA202412071720
+
+更新日志：
+		2024年12月07日 17:20
+		1.修复BUG...
+		2.发布linux 正式版本
+
+		2024年11月28日 20:00
+		1.CERTVERIFY.go文件第639行加 continue;
+		  作用屏蔽这个小方块，有BUG，待修复
+
+		2024年11月15日 19:41
+		1.根据以下参考来源调整ctlogs.go中(this *PreCertificateTimestamp_RFC)Bytes()生成预签名数据 手动TLS编码
+		  参考来源https://blog.pierky.com/certificate-transparency-manually-verify-sct-with-openssl/
+		  待签名数据结构
+		  # sct_version = v1 = 0x00, 1 byte
+		  # signature_type = certificate_timestamp = 0x00, 1 byte
+		  # timestamp = 0x000001459df97d9c, 8 bytes
+		  # entry_type = x509_entry = 0x0000, 2 bytes | 0x00,0x00 = ASN.1Cert;0x00,0x01 = PreCert
+		  # x509_entry  = 0x00,0x04,0xE2  前3个字节 length of DER-encoded EE cert, 3 bytes，后面跟着DER编码x509.tbscertificate
+		  # extensions= 0x00,0x00 : none, 0-length, 2 bytes
+
+
+		2024年11月14日 22:26
+		1.CERTVERIFY.go增加RFC可信签名证书时间戳签名验证的流程
+
+		2024年11月11日 16:25
+		1.CERTVERIFY.go ShowPkixEXP()函数 增加签名验证的流程
+		2.sct.go 修复BUG....
+
+		2024年11月10日 21:29
+		1.CERTVERIFY.go 加入ShowPkixEXP()函数
+		2.sct.go 修复BUG....
+
+		2024年11月03日 17:01
+		1.原test文件夹改名为 1.生成SM2证书例子
+		2.新添加例子 2.Go国密SSL和国际SSL自适应https服务例子
+		3.golib\tjfoc\gmsm 加入curve25519模块
+
+		2024年10月31日 18:48
+		1.MAKECERT.go CERTVERIFY.go 增加以下增强型密钥用法
+			0:任何目的 1:服务器身份验证(SSL) 2:客户端身份验证(SSL)
+			3:代码签名 4:电子邮件保护 5:IPSec端系统
+			6:IPSec隧道模式 7:IPSec用户模式 8:时间戳签名
+			9:OCSP响应签名 10:Microsoft服务器加密 11:Netscape服务器加密
+			12:Microsoft商业代码签名 13:Microsoft内核代码签名 14:Windows 硬件驱动程序验证
+			15:Windows 系统组件验证  16:OEM Windows 系统组件验证 17:内嵌 Windows 系统组件验证
+			18:域名系统(DNS)服务器信任  19:系统健康身份认证  20:已吊销列表签名者
+			21:KDC 身份认证  22:生存时间签名  23:私钥存档  24:合格的部署
+			25:密钥恢复  26:文档签名  27:Microsoft 时间戳  28:加密文件系统
+			29:密钥恢复代理  30:目录服务电子邮件复制  31:IP 安全 IKE 中级
+			32:文件恢复  33:根列表签名者  34:数字权利  35:CTL 用法
+			36:密钥数据包许可证  37:许可证服务器验证  38:证书申请代理
+			39:智能卡登录 40:智能卡验证 41:智能卡证书验证 42:智能卡信任使用
+			43:Apple CodeSing 代码签名  44:Apple Development CodeSing 开发者代码签名
+			45:Apple Resource Signing 资源签名  46:Apple Ichat Signing Ichat签名
+		2.CERTVERIFY.go支持实时获取OCSP状态，显示吊销时间，吊销原因等.
+
+		2024年10月28日 19:13
+		1.CERTVERIFY.go 美化输出信息的可读性、实现了RSA、ECC、SM2三种算法的证书信息查看。
+		2.支持验证证书中嵌入的签名，签名验证中增加了哈希算法md5、sha1、sha256、sha384、sha512、sm3。
+		3.目前支持实时查看证书状态，是否被撤销，撤销原因,撤销时间等信息...
+
+
+		2024年10月27日 14:55
+		1.数字证书 加入x509扩展CTLog PublicKey (1.36.1.4.1.11129.2.4.5)
+			这里嵌入签发SCT列表的公钥，这个公钥用于验证SCT列表签名。因为浏览器不会内置咱们自己生成的时间戳签名公钥，所以需要嵌入到生成的证书中。
+		2.admin.go 加入证书文件verify功能，并且支持验证SCT列表的签名，CRL列表，OCSP信息
+
+		2024年10月26日 14:08
+		1.修复签名SCT列表 ASN.1 DER编码格式一些小问题
+		2.SCT列表 目前支持1 - 6 份日志信息
+
+		2024年10月22日 19:30
+		1.修复关于交叉签名时一些小BUG 
+		  具体表现为 SM2证书不能以SM2withSM3不能为RSA和ECC进行交叉签名 得签名算法得使用使SM2withSHA1 或者SM2withSHA256
+
+		2024年10月21日 23:56
+		1.兼容RSA ECC SM2 SM2 证书修复签名错误的BUG
+		2.修复BUG 修复代码兼容SM2时RSA创建失败的问题
+		3.golib 文件夹中modcrypto中的x509.go 和tjfoc中的utils.go 需要代码更新
+		4.rootGETcrl.go 目前支持自动生成 RSA、ECC、SM2这三种签名算法的证书吊销列表
+		5.MAIN.go OCSP在线证书协议目前支持RSA、ECC两种算法，即将支持SM2国密算法
+		6.admin.go 控制台signCert流程支持交叉签名,交叉认证   1. RSA->ECC RSA->SM2 RSA->RSA
+					2. ECC->ECC ECC->SM2 ECC->RSA 3.  SM2->ECC SM2->SM2 SM2->RSA
+
+		2024年10月21日 23:10
+		1.新增功能  MAKEROOT.go 创建RSA ECC 国密 根证书 ,目前支持以下参数
+		           RSA :1024 2048 3072 4096 5120 6144 7168 8192
+		           ECC:ECDSA-224 ECDSA-256 ECDSA-384 ECDSA-521
+		           国密:SM2-SM3
+		2.新增功能  证书透明度日志列表  自定义证书策略信息
+		3.优化文件系统组织架构
+
+
+		2024年09月16日 11:01
+		1.BUG 修复 CreateCertificate()函数创建的SM2证书 签名错误的问题
+
+		2024年08月21日 21:41
+		1.加入生成 ECC证书吊销列表，SM2证书吊销列表的功能
+		2.例子 makecrlofsmecc.cmd一键启动编译 ecccrl.go smcrl.go 基于上次更新demo_ecc demo_sm的国密证书
+
+		2024年08月18日 14:40
+		1.加入ECC算法 P256 P384 P512 
+		2.加入国密算法 SM2 SM3 SM4 等...
+		3.目前支持demo_ecc demo_sm 构建X509国密证书，即将更新MODPKICA架构
+
+		2024年04月14日 18:22 
+		1.OCSP在线证书协议修复BUG..
+		2.整合Authcode时间戳和RFC3161时间戳统一地址:http://localhost/timestamp
+		   （此链接同时支持SHA1和SHA256）
+		3.MODPKICA系统从此版本支持同时兼容多个中间CA..
+		4.接下来将会加入导入现有根证书链的功能，实现多个根链......
+
+                2023年12月13日 01:45 
+		1.增加RFC3161 Document文档签名时间戳
+		  http://localhost/rfc3161
+		2.时间戳签名证书 增强型密钥用法 加入了Critical,符合RFC3161国际标准
+		2.修复一些小BUG
+
+		2023年12月10日 20:02 
+		1.增加TSA时间戳服务器 支持Authenticode类型 SHA1    SHA256
+		  SHA256:http://localhost/timestamp
+		  SHA1:http://localhost/timestamp/sha1
+		2.修复一些小问题
+		
+		2023年12月9日 22:33 上传GITEE GITHUB代码库
+		1.大部分功能
+		
+		2023年12月2日 15:00 本地建立项目
+
+本项目为作者在学习X.509证书系统知识时边学习边开发，只供学习，不承担由此产生的一切不良问题
+
+另外，我肚子好饿，后悔学编程了。。。。。希望有大佬支持打赏一顿饭

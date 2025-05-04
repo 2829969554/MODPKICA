@@ -6,8 +6,8 @@ import (
     "errors"
     "unicode"
 
-    "golang.org/x/crypto/cryptobyte"
-    cryptobyte_asn1 "golang.org/x/crypto/cryptobyte/asn1"
+    "modpkica/golib/modcrypto/cryptobyte"
+    cryptobyte_asn1 "modpkica/golib/modcrypto/cryptobyte/asn1"
 )
 
 func forEachSAN(der cryptobyte.String, callback func(tag int, data []byte) error) error {

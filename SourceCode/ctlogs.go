@@ -7,7 +7,7 @@ import(
 	"encoding/hex"
 	"encoding/base64"
 	"strconv"
-    "crypto/x509/pkix"
+    "modpkica/golib/pkix"
     "math/big"
     "encoding/asn1"
     "errors"

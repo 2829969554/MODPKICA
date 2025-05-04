@@ -3,7 +3,7 @@ package x509
 import (
     "bytes"
     "crypto"
-    "crypto/x509/pkix"
+    "modpkica/golib/pkix"
     "errors"
     "fmt"
     "net"

@@ -6,10 +6,10 @@ import (
     "math/big"
     "crypto/cipher"
 
-    cipher_gost "modcrypto/cipher/gost"
-    "modcrypto/hash/gost/gost341194"
-    "modcrypto/hash/gost/gost34112012256"
-    "modcrypto/hash/gost/gost34112012512"
+    cipher_gost "modpkica/golib/modcrypto/cipher/gost"
+    "modpkica/golib/modcrypto/hash/gost/gost341194"
+    "modpkica/golib/modcrypto/hash/gost/gost34112012256"
+    "modpkica/golib/modcrypto/hash/gost/gost34112012512"
 )
 
 func NewUKM(raw []byte) *big.Int {

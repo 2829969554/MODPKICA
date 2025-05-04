@@ -8,7 +8,7 @@ import (
 	"crypto/des"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
+	"modpkica/golib/x509"
 	"encoding/asn1"
 	"errors"
 	"fmt"

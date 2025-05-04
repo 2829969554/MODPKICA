@@ -14,10 +14,10 @@ import (
    // "encoding/hex"
 
 
-    "modcrypto/hash/sm3"
-    "modcrypto/kdf/smkdf"
-    "modcrypto/tool/alias"
-    "modcrypto/gm/sm2/sm2curve"
+    "modpkica/golib/modcrypto/hash/sm3"
+    "modpkica/golib/modcrypto/kdf/smkdf"
+    "modpkica/golib/modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/gm/sm2/sm2curve"
 )
 
 var (

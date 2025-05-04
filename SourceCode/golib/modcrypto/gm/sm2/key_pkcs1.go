@@ -7,7 +7,7 @@ import (
     "encoding/asn1"
     "crypto/elliptic"
 
-    "modcrypto/gm/sm2/sm2curve"
+    "modpkica/golib/modcrypto/gm/sm2/sm2curve"
 )
 
 const sm2PrivKeyVersion = 1

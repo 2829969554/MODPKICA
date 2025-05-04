@@ -7,7 +7,7 @@ import (
     "crypto/cipher"
     "encoding/asn1"
 
-    "modcrypto/cipher/gost"
+    "modpkica/golib/modcrypto/cipher/gost"
 )
 
 var (

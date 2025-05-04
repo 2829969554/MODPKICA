@@ -6,7 +6,7 @@ import (
     "crypto/cipher"
     "encoding/asn1"
 
-    "modcrypto/cipher/ccm"
+    "modpkica/golib/modcrypto/cipher/ccm"
 )
 
 // ccm 模式加密参数

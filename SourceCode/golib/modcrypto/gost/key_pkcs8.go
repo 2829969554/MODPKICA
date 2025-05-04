@@ -6,7 +6,7 @@ import (
     "encoding/asn1"
     "crypto/x509/pkix"
 
-    "golang.org/x/crypto/cryptobyte"
+    "modpkica/golib/modcrypto/cryptobyte"
 )
 
 var (

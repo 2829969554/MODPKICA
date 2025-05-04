@@ -9,7 +9,7 @@ import (
 	"encoding/binary"
 	"unsafe"
 
-	"golang.org/x/sys/cpu"
+	"modpkica/golib/modcrypto/cpu"
 )
 
 // xorIn xors the bytes in buf into the state.

@@ -6,10 +6,10 @@ import (
     "errors"
     "strings"
     "encoding/asn1"
-    "crypto/x509/pkix"
+    "modpkica/golib/pkix"
 
-    "golang.org/x/crypto/cryptobyte"
-    cryptobyte_asn1 "golang.org/x/crypto/cryptobyte/asn1"
+    "modpkica/golib/modcrypto/cryptobyte"
+    cryptobyte_asn1 "modpkica/golib/modcrypto/cryptobyte/asn1"
 )
 
 func parseNameConstraintsExtension(out *Certificate, e pkix.Extension) (unhandled bool, err error) {

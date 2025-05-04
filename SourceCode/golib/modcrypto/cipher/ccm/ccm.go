@@ -8,7 +8,7 @@ import (
     go_cipher "crypto/cipher"
     go_subtle "crypto/subtle"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 const (

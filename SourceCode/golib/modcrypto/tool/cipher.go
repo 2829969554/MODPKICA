@@ -5,13 +5,13 @@ import (
     "crypto/des"
     "crypto/cipher"
 
-    "modcrypto/modinit/tea"
-    "modcrypto/modinit/xtea"
-    "modcrypto/modinit/cast5"
-    "modcrypto/modinit/twofish"
-    "modcrypto/modinit/blowfish"
+    "modpkica/golib/modcrypto/modinit/tea"
+    "modpkica/golib/modcrypto/modinit/xtea"
+    "modpkica/golib/modcrypto/modinit/cast5"
+    "modpkica/golib/modcrypto/modinit/twofish"
+    "modpkica/golib/modcrypto/modinit/blowfish"
 
-    "modcrypto/cipher/sm4"
+    "modpkica/golib/modcrypto/cipher/sm4"
 )
 
 type (

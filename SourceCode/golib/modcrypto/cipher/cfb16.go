@@ -4,7 +4,7 @@ import (
     "crypto/cipher"
     "crypto/subtle"
 
-    "modcrypto/tool/alias"
+    "modpkica/golib/modcrypto/tool/alias"
 )
 
 /**

@@ -10,17 +10,17 @@ import (
     "crypto/sha256"
     "crypto/sha512"
 
-    "modcrypto/modinit/sha3"
-    "modcrypto/modinit/blake2s"
-    "modcrypto/modinit/blake2b"
-    "modcrypto/modinit/ripemd160"
+    "modpkica/golib/modcrypto/modinit/sha3"
+    "modpkica/golib/modcrypto/modinit/blake2s"
+    "modpkica/golib/modcrypto/modinit/blake2b"
+    "modpkica/golib/modcrypto/modinit/ripemd160"
 
-    "modcrypto/hash/sm3"
+    "modpkica/golib/modcrypto/hash/sm3"
 
-    cipher_gost "modcrypto/cipher/gost"
-    "modcrypto/hash/gost/gost341194"
-    "modcrypto/hash/gost/gost34112012256"
-    "modcrypto/hash/gost/gost34112012512"
+    cipher_gost "modpkica/golib/modcrypto/cipher/gost"
+    "modpkica/golib/modcrypto/hash/gost/gost341194"
+    "modpkica/golib/modcrypto/hash/gost/gost34112012256"
+    "modpkica/golib/modcrypto/hash/gost/gost34112012512"
 )
 
 type Hash uint

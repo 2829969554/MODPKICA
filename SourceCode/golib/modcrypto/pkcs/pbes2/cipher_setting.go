@@ -6,14 +6,14 @@ import (
     "crypto/cipher"
     "encoding/asn1"
 
-    "modcrypto/cipher/rc2"
-    "modcrypto/cipher/rc5"
-    "modcrypto/cipher/sm4"
-    "modcrypto/cipher/seed"
-    "modcrypto/cipher/aria"
-    "modcrypto/cipher/gost"
-    "modcrypto/cipher/misty1"
-    "modcrypto/cipher/serpent"
+    "modpkica/golib/modcrypto/cipher/rc2"
+    "modpkica/golib/modcrypto/cipher/rc5"
+    "modpkica/golib/modcrypto/cipher/sm4"
+    "modpkica/golib/modcrypto/cipher/seed"
+    "modpkica/golib/modcrypto/cipher/aria"
+    "modpkica/golib/modcrypto/cipher/gost"
+    "modpkica/golib/modcrypto/cipher/misty1"
+    "modpkica/golib/modcrypto/cipher/serpent"
 )
 
 var (

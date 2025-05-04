@@ -33,8 +33,10 @@ import (
  "crypto/rsa" 
  "crypto/ecdsa" 
  "crypto/elliptic"
- "crypto/x509"  
- "crypto/x509/pkix"  
+ //"crypto/x509"  
+ //"crypto/x509/pkix"  
+ "modpkica/golib/x509"
+ "modpkica/golib/pkix"
  "encoding/pem"  
  "fmt"  
  "math/big"  
@@ -53,8 +55,9 @@ import (
  "io/ioutil"
  "log"
  mrand "math/rand"
-"modcrypto/gm/sm2"
-sm2x509 "modcrypto/x509"
+"modpkica/golib/modcrypto/gm/sm2"
+sm2x509 "modpkica/golib/modcrypto/x509"
+
 )  
 //去掉结尾的\r\n
 func rftrn(s string) string {  

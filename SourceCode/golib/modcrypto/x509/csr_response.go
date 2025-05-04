@@ -6,7 +6,7 @@ import (
     "crypto/rand"
     "encoding/asn1"
 
-    "modcrypto/gm/sm2"
+    "modpkica/golib/modcrypto/gm/sm2"
 )
 
 // see GM docs at GM/T 0092-2020

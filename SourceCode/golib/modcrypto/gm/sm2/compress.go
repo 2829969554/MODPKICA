@@ -3,7 +3,7 @@ package sm2
 import (
     "errors"
 
-    "modcrypto/gm/sm2/sm2curve"
+    "modpkica/golib/modcrypto/gm/sm2/sm2curve"
 )
 
 // 解缩公钥
