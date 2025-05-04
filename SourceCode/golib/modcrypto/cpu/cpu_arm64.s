@@ -37,3 +37,4 @@ TEXT ·getzfr0(SB),NOSPLIT,$0-8
 	WORD $0xd5380480
 	MOVD	R0, ret+0(FP)
 	RET
+

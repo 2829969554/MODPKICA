@@ -4,7 +4,7 @@
 
 package x509
 
-import "internal/goos"
+//import "internal/goos"
 
 // Possible certificate files; stop after finding one.
 var certFiles = []string{
@@ -23,7 +23,7 @@ var certDirectories = []string{
 }
 
 func init() {
-	if goos.IsAndroid == 1 {
+	if 1 == 1 {
 		certDirectories = append(certDirectories,
 			"/system/etc/security/cacerts",    // Android system roots
 			"/data/misc/keychain/certs-added", // User trusted CA folder
