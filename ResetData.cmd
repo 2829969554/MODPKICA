@@ -1,8 +1,9 @@
-del /f .\\PKI\\*.txt.old.*
+﻿del /f .\\PKI\\*.txt.old.*
 
 del /f .\\PKI\\CA\\*.crt
 del /f .\\PKI\\CA\\*.key
 del /f .\\PKI\\CERT\\*.crt
+del /f .\\PKI\\CERT\\*.pfx
 del /f .\\PKI\\CERT\\*.key
 del /f .\\PKI\\ROOT\\*.crt
 del /f .\\PKI\\ROOT\\*.key
