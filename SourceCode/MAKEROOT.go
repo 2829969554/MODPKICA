@@ -16,7 +16,7 @@ import (
  "net"   
  //"net/url" 
  "encoding/asn1"
- "crypto/sha256" 
+ "crypto/sha1" 
  "path/filepath"
  "strings"
  "strconv"
@@ -318,43 +318,49 @@ if(Keyalgorithm =="ECC"){
 }
 
 //fmt.Println(RSAprivateKey,ECCprivateKey)
-
+ var arr,arr2 []byte 
 var publicKeyDER []byte
 
 if(Keyalgorithm =="RSA"){
  // 提取公钥  
  publicKey := &RSAprivateKey.PublicKey   
+
  // 将公钥转换为[]byte  
  publicKeyDERbyte, _ := x509.MarshalPKIXPublicKey(publicKey) 
  publicKeyDER = publicKeyDERbyte
+ arr = generateKeyIdentifier_PKCS1(publicKey,publicKeyDER)
+ arr2 = generateKeyIdentifier_PKCS1(publicKey,publicKeyDER)
 }
 
 if(Keyalgorithm =="SM2"){
  // 提取公钥  
  publicKey := &SM2privateKey.PublicKey
+
  // 将公钥转换为[]byte
  publicKeyDERbyte, _ := sm2.MarshalPublicKey(publicKey) 
  publicKeyDER = publicKeyDERbyte
+ arr = generateKeyIdentifier_PKCS1(publicKey,publicKeyDER)
+ arr2 = generateKeyIdentifier_PKCS1(publicKey,publicKeyDER)
 }
 
 if(Keyalgorithm =="ECC"){
  // 提取公钥  
- publicKey := &ECCprivateKey
+ publicKey := &ECCprivateKey.PublicKey
 
  // 将公钥转换为[]byte  
  publicKeyDERbyte, _ := x509.MarshalPKIXPublicKey(publicKey) 
  publicKeyDER = publicKeyDERbyte
+
+ arr = generateKeyIdentifier_PKCS1(publicKey,publicKeyDER)
+ arr2 = generateKeyIdentifier_PKCS1(publicKey,publicKeyDER)
 }
  
 
  //privateKeyDER := x509.MarshalPKCS1PrivateKey(privateKey) 
  //fmt.Println(sha1.Sum(privateKeyDER))
  //MOD颁发者密钥
- var arr,arr2 []byte  
-     hash := sha256.New()
-    hash.Write(publicKeyDER)
- arr=hash.Sum(nil)
- arr2=hash.Sum(nil)
+ 
+
  //颁发者密钥sha1
  priid:=arr[:]
  //使用者密钥sha1
@@ -849,3 +855,38 @@ func saveSM2PrivateKey(privateKey *sm2.PrivateKey, filename string) error {
  }
  return nil  
 } 
+
+
+
+
+
+
+
+// generateKeyIdentifier 生成密钥标识符，通常是公钥的 SHA-1 哈希值
+func generateKeyIdentifier_PKCS1(publicKey interface{},publicKeyDER []byte) []byte {
+    switch pub := publicKey.(type) {
+
+    case *rsa.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算公钥的哈希值
+        hash3 := sha1.New()
+        hash3.Write(x509.MarshalPKCS1PublicKey(pub))
+        return hash3.Sum(nil)
+
+    case *ecdsa.PublicKey:
+        // 使用 SHA-1 哈希算法计算公钥的哈希值
+        hash := sha1.New()
+        ak,_ := x509.MarshalPKIXPublicKey(pub)
+        hash.Write(ak)
+        return hash.Sum(nil)
+
+    case *sm2.PublicKey:
+        hash3 := sha1.New()
+        hash3.Write(publicKeyDER)
+        return hash3.Sum(nil)
+
+    default:
+        hash3 := sha1.New()
+        hash3.Write(publicKeyDER)
+        return hash3.Sum(nil)
+    }
+}

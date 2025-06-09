@@ -124,6 +124,9 @@ VERSION ---------------------------------查看当前MODPKICA版本号
 最新版本: MODPKICA 6.0 202505042219
 
 更新日志：
+		2025年06月09日 22:50
+		1.修复MAKEROOT.go中priid与subid的计算方法，原本全部是纯sha1，RSA算法修改为RFC-SHA1
+		
 		2025年05月04日 22:15
 		1.由于多个用户反馈 golib 复制到 GO_HOME 不合理，按照规范不允许修改标准库。
 			我定义项目根目录包名为modpkica，golib下的模块需要以modpkica.xxx的形式在代码中引用。
