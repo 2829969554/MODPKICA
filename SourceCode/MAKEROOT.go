@@ -875,7 +875,7 @@ func generateKeyIdentifier_PKCS1(publicKey interface{},publicKeyDER []byte) []by
     case *ecdsa.PublicKey:
         // 使用 SHA-1 哈希算法计算公钥的哈希值
         hash := sha1.New()
-        ak,_ := x509.MarshalPKIXPublicKey(pub)
+        ak:= elliptic.Marshal(pub.Curve,pub.X,pub.Y)
         hash.Write(ak)
         return hash.Sum(nil)
 
