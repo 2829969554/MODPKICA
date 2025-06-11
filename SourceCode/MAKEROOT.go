@@ -867,21 +867,22 @@ func generateKeyIdentifier_PKCS1(publicKey interface{},publicKeyDER []byte) []by
     switch pub := publicKey.(type) {
 
     case *rsa.PublicKey:
-        // 使用 RFC-SHA-1 哈希算法计算公钥的哈希值
+        // 使用 RFC-SHA-1 哈希算法计算rsa公钥的哈希值
         hash3 := sha1.New()
         hash3.Write(x509.MarshalPKCS1PublicKey(pub))
         return hash3.Sum(nil)
 
     case *ecdsa.PublicKey:
-        // 使用 SHA-1 哈希算法计算公钥的哈希值
+        // 使用 RFC-SHA-1 哈希算法计算ecdsa公钥的哈希值
         hash := sha1.New()
         ak:= elliptic.Marshal(pub.Curve,pub.X,pub.Y)
         hash.Write(ak)
         return hash.Sum(nil)
 
     case *sm2.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算sm2公钥的哈希值
         hash3 := sha1.New()
-        hash3.Write(publicKeyDER)
+        hash3.Write(elliptic.Marshal(pub.Curve,pub.X,pub.Y))
         return hash3.Sum(nil)
 
     default:

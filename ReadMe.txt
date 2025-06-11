@@ -122,13 +122,19 @@ VERSION ---------------------------------查看当前MODPKICA版本号
 -------------------------------------------------------------------
 建立时间2023年12月9日 22:33   作者：@魔帝本尊  QQ:2829969554  
 **********************************************************************
-最新版本: MODPKICA 6.0 202506112219
+最新版本: MODPKICA 6.0 202506112153
 
 更新日志：
+		2025年06月11日 21:53
+		1.修复MAKEROOT.go中priid与subid的计算方法，原本是DER编码公钥的sha1值。
+		  通过elliptic.Marshal将 ECDSA证书的priid与subid的计算方法算法修改为RFC-SHA1。
+		  通过elliptic.Marshal将 SM2证书的priid与subid的计算方法算法修改为RFC-SHA1。
+		
+		
 		2025年06月09日 22:50
 		1.修复MAKEROOT.go中priid与subid的计算方法，原本是DER编码公钥的sha1值。
 		  今天将RSA算法证书的priid与subid的计算方法修改为RFC-SHA1。  
-		2.6月11日21:09 通过elliptic.Marshal将 ECDSA证书的priid与subid的计算方法算法修改为RFC-SHA1。
+
 		
 		2025年05月04日 22:15
 		1.由于多个用户反馈 golib 复制到 GO_HOME 不合理，按照规范不允许修改标准库。
