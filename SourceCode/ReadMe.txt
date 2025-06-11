@@ -58,7 +58,9 @@
 		1.修复MAKEROOT.go中priid与subid的计算方法，原本是DER编码公钥的sha1值。
 		  通过elliptic.Marshal将 ECDSA证书的priid与subid的计算方法算法修改为RFC-SHA1。
 		  通过elliptic.Marshal将 SM2证书的priid与subid的计算方法算法修改为RFC-SHA1。
-		
+		  
+		2.修复MAKECERT.go中priid与subid的计算方法，原本是DER编码公钥的sha1值。
+		  现修改为rfc-sha1（RSA、ECDSA、SM2同时修正）。		
 		
 		2025年06月09日 22:50
 		1.修复MAKEROOT.go中priid与subid的计算方法，原本是DER编码公钥的sha1值。

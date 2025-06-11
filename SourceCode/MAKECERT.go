@@ -46,7 +46,7 @@ import (
  //"net/url" 
  "encoding/asn1"
  "encoding/hex"
- "crypto/sha256" 
+ "crypto/sha1" 
  "path/filepath"
  "strings"
  "strconv"
@@ -58,7 +58,38 @@ import (
 "modpkica/golib/modcrypto/gm/sm2"
 sm2x509 "modpkica/golib/modcrypto/x509"
 
-)  
+) 
+
+// generateKeyIdentifier 生成密钥标识符，通常是公钥的 SHA-1 哈希值
+func generateKeyIdentifier_PKCS1(publicKey interface{},publicKeyDER []byte) []byte {
+    switch pub := publicKey.(type) {
+
+    case *rsa.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算rsa公钥的哈希值
+        hash3 := sha1.New()
+        hash3.Write(x509.MarshalPKCS1PublicKey(pub))
+        return hash3.Sum(nil)
+
+    case *ecdsa.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算ecdsa公钥的哈希值
+        hash := sha1.New()
+        ak:= elliptic.Marshal(pub.Curve,pub.X,pub.Y)
+        hash.Write(ak)
+        return hash.Sum(nil)
+
+    case *sm2.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算sm2公钥的哈希值
+        hash3 := sha1.New()
+        hash3.Write(elliptic.Marshal(pub.Curve,pub.X,pub.Y))
+        return hash3.Sum(nil)
+
+    default:
+        hash3 := sha1.New()
+        hash3.Write(publicKeyDER)
+        return hash3.Sum(nil)
+    }
+}
+
 //去掉结尾的\r\n
 func rftrn(s string) string {  
  for len(s) > 0 && s[len(s)-1] == '\n' {  
@@ -717,7 +748,8 @@ if(CertKeyalgorithm =="ECC"){
 
 
 
-
+ //1颁发者密钥  2号使用者密钥
+ var arr,arr2 []byte  
 
 // 提取root公钥  将公钥转换为[]byte 
  var rootpublicKeyDER []byte
@@ -728,48 +760,47 @@ if(RootKeyalgorithm =="RSA"){
      rootpublicKey := &RSArootprivateKey.PublicKey 
      rootpublicKeyDERtmp, _ := x509.MarshalPKIXPublicKey(rootpublicKey) 
      rootpublicKeyDER = rootpublicKeyDERtmp
+     arr = generateKeyIdentifier_PKCS1(rootpublicKey,rootpublicKeyDER)
 }
 if(CertKeyalgorithm =="RSA"){
      certpublicKey := &RSAcertprivateKey.PublicKey 
      certpublicKeyDERtmp, _ := x509.MarshalPKIXPublicKey(certpublicKey)  
      certpublicKeyDER = certpublicKeyDERtmp
+     arr2 = generateKeyIdentifier_PKCS1(certpublicKey,certpublicKeyDER)
 }
 
 if(RootKeyalgorithm =="ECC"){
     rootpublicKey := &ECCrootprivateKey.PublicKey 
     rootpublicKeyDERtmp, _ := x509.MarshalPKIXPublicKey(rootpublicKey) 
     rootpublicKeyDER = rootpublicKeyDERtmp
+    arr = generateKeyIdentifier_PKCS1(rootpublicKey,rootpublicKeyDER)
 }
 if(CertKeyalgorithm =="ECC"){
      certpublicKey := &ECCcertprivateKey.PublicKey 
      certpublicKeyDERtmp, _ := x509.MarshalPKIXPublicKey(certpublicKey)  
      certpublicKeyDER = certpublicKeyDERtmp
+     arr2 = generateKeyIdentifier_PKCS1(certpublicKey,certpublicKeyDER)
 }
 
 if(RootKeyalgorithm =="SM2"){
     rootpublicKey := &SM2rootprivateKey.PublicKey
     rootpublicKeyDERtmp, _ := sm2.MarshalPublicKey(rootpublicKey)
     rootpublicKeyDER = rootpublicKeyDERtmp
+    arr = generateKeyIdentifier_PKCS1(rootpublicKey,rootpublicKeyDER)
 }
 if(CertKeyalgorithm =="SM2"){
     certpublicKey := &SM2certprivateKey.PublicKey 
     certpublicKeyDERtmp, _ := sm2.MarshalPublicKey(certpublicKey)   
     certpublicKeyDER = certpublicKeyDERtmp
+    arr2 = generateKeyIdentifier_PKCS1(certpublicKey,certpublicKeyDER)
 }
 
 
 
- //MOD颁发者密钥
- var arr,arr2 []byte  
 
- hash1 := sha256.New()
- hash1.Write(rootpublicKeyDER)
 
- hash2 := sha256.New()
- hash2.Write(certpublicKeyDER)
 
- arr  = hash1.Sum(nil)
- arr2 = hash2.Sum(nil)
+
  //颁发者密钥sha1
  priid:=arr[:]
  //使用者密钥sha1
