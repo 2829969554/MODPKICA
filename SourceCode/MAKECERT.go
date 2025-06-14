@@ -1361,7 +1361,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     mysct3 = mysct3
     mysctlist = SCTList{
         //将3组SCT结构套在一起
-        SCTs: []SCT{mysct,mysct2,mysct3},
+        SCTs: []SCT{mysct,mysct2},
     }
 
     //生成SCT列表 ASN.1数据  status是状态True|False   sctans1data为 SCT列表的ASN.1数据
@@ -1456,11 +1456,12 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
         cpsExtension,
         }
     }
+    ctlogpublickey = ctlogpublickey
     //密钥用法为域名SSL 且不是CA，必须为最终实体 增加CT透明度
     if(CertIsCA==false && len(MODML) >= 6){
         if strings.Contains(MODML[5], "1") || strings.Contains(MODML[5], "2"){
-            template.ExtraExtensions=append(template.ExtraExtensions,ctExtension)
-            template.ExtraExtensions=append(template.ExtraExtensions,ctlogpublickey)
+            //template.ExtraExtensions=append(template.ExtraExtensions,ctExtension)
+            //template.ExtraExtensions=append(template.ExtraExtensions,ctlogpublickey)
         }
     }
 if(MODML[1]=="initTIMSTAMP"){
