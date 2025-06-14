@@ -703,11 +703,12 @@ UnknownExtKeyUsage:MODUnknownExtKeyUsage,
         Value:    []byte{0x02,0x01,0x03},
     }
     //MOD加入x509扩展
+    caverExtension = caverExtension
     template.ExtraExtensions = []pkix.Extension{
-        caverExtension,
+        //caverExtension,
         //ctyExtension,
-        ctExtension,
-        ctlogpublickey,
+        //ctExtension,
+        //ctlogpublickey,
         //noocspExtension,
         //ocspmustExtension,
         cpsExtension,

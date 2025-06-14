@@ -1380,7 +1380,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
         Critical: false,
         Value:    sctans1data,
     }
-    
+    ctExtension = ctExtension
     /*MOD新版CPS模块待更新*/
     // 创建一个CPS扩展
     cpsURL := MODSUCPS
@@ -1429,6 +1429,8 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
         Critical: false,
         Value:    []byte{0x02,0x01,0x03},
     }
+
+    caverExtension = caverExtension
      // 创建一个关键增强型密钥用法扩展 时间戳专用
     modgjExtension := pkix.Extension{
         Id:       asn1.ObjectIdentifier{2, 5, 29,37},
@@ -1437,7 +1439,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     }
     //MOD加入x509扩展
     template.ExtraExtensions = []pkix.Extension{
-        caverExtension,
+        //caverExtension,
         //ctyExtension,
         //ctExtension,
         //noocspExtension,
@@ -1446,7 +1448,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
         }
     if(MODML[1]=="initOCSP"){
     template.ExtraExtensions = []pkix.Extension{
-        caverExtension,
+        //caverExtension,
         //ctyExtension,
         //ctExtension,
         noocspExtension,
@@ -1463,7 +1465,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     }
 if(MODML[1]=="initTIMSTAMP"){
     template.ExtraExtensions = []pkix.Extension{
-        caverExtension,
+        //caverExtension,
         modgjExtension,
         //ctyExtension,
         //ctExtension,
