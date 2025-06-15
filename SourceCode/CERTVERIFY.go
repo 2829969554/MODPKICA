@@ -26,10 +26,11 @@ gox509 "modpkica/golib/x509"
     "time"
     "math/big"
     "modpkica/golib/pkix"
+
     "modpkica/golib/tjfoc/gmsm/sm2"
     "modpkica/golib/tjfoc/gmsm/sm3"
     "strings"
-    //"crypto/x509/pkix"
+    gopkix "crypto/x509/pkix"
 )
 
 
@@ -540,7 +541,7 @@ func main(){
         }
     }
 
-   // ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId,dmcert)
+    ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId,dmcert)
 
     fmt.Println("\n\n")
     fmt.Println("证书签名：\n        ",hex.EncodeToString(dmcert.Signature),"\n")
@@ -603,11 +604,24 @@ func main(){
 
 
 //解析X509扩展-未知属性OID
-func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPublicKeySH256 []byte,dmcert *x509.Certificate){
+func ShowPkixExtension(data interface{},UserPublicKeySH256 []byte,IssuerPublicKeySH256 []byte,dmcert *x509.Certificate){
     var SCTPublicKeyBytes [][]byte
     var PublicSCTs []SCT
-    fmt.Println("")
-    for _, row := range data {
+    myexts, ok := data.([]pkix.Extension);
+if  ok != false  {
+    // 成功断言，可以使用 myexts
+  //  fmt.Println(ok)
+ //   fmt.Println("1是的")
+    return 
+} 
+    myexts2, ok2 := data.([]gopkix.Extension);
+    myexts = myexts
+if  ok2 == false  {
+    // 成功断言，可以使用 myexts
+    return 
+} 
+
+    for _, row := range myexts2 {
         if(row.Id[0]==2){
             continue;
         }
@@ -636,9 +650,10 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
         }
 
         if(fmt.Sprintf("%x",row.Id) == fmt.Sprintf("%x",asn1.ObjectIdentifier{1,3,6,1,4,1,11129,2,4,2})){
-            continue;
+            //continue;
             fmt.Println("SCT列表:\n        ")
             var mylist SCTList
+            //os.WriteFile("sct.bin", row.Value, 0644)
             index := bytes.IndexByte(row.Value, 0x82)
             if(index == -1){
                 fmt.Println(fmt.Sprintf("%x",row.Value))
@@ -646,8 +661,30 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
             }
             //fmt.Println("我的公钥:",len(SCTPublicKeyBytes))
             remainingData := row.Value[index+3:]
-            //fmt.Println(fmt.Sprintf("%x",remainingData))
-            if(mylist.Parse(remainingData)){
+           // fmt.Println(fmt.Sprintf("%x",remainingData))
+           mylist.Raw = row.Value[index+3:]
+           mylist.SCTListlenth = len(row.Value[index+3:])
+            list, err := SCT2ParseSCTList(remainingData)
+            if err != nil {
+                panic(err)
+            }
+            mylist.SCTs = make([]SCT, len(list.SCTs))
+            for i, sct := range list.SCTs {
+                mylist.SCTs[i].Version = int(sct.Version)
+                mylist.SCTs[i].LogID = sct.LogID[:]
+                mylist.SCTs[i].Timestamp = sct.Timestamp
+                mylist.SCTs[i].Hash = int(sct.Signature.Algorithm)
+                mylist.SCTs[i].Signtype = int(sct.Signature.Algorithm)
+
+                if(int(sct.Signature.Algorithm) ==1027){
+                mylist.SCTs[i].Hash = 4
+                mylist.SCTs[i].Signtype = 3
+                }
+
+                 mylist.SCTs[i].Signature = sct.Signature.Data[:]
+
+            }
+
                 PublicSCTs = mylist.SCTs
                 for _, mySCT := range mylist.SCTs {
                     fmt.Println("        日志版本: ",fmt.Sprintf("V%d",mySCT.Version+1))
@@ -658,7 +695,7 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
                     fmt.Println("")
 
                 }
-            }
+            
             continue;
         }       
 
@@ -736,7 +773,7 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
             fmt.Println("    日志标识符 :",fmt.Sprintf("%x", PublicSCTs[Ei].LogID))
             fmt.Println("        序列号 :",fmt.Sprintf("%x", TimestampHexBytes))
             fmt.Println("        SHA256 :",fmt.Sprintf("%x", hash[:]))
-            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true /* || len(myctloglist.Getkey(PublicSCTs[Ei].LogID)) > 0 */){
+            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true  || len(myctloglist.Getkey(PublicSCTs[Ei].LogID)) > 0 ){
                 fmt.Println("      验证状态 : 此SCT签名有效。")
             }else{
                 fmt.Println("       验证状态: 无效签名，此SCT签名无法验证。")  
@@ -750,7 +787,7 @@ func ShowPkixExtension(data []pkix.Extension,UserPublicKeySH256 []byte,IssuerPub
 //检查在线证书状态协议
 func CheckOCSP(certid *big.Int,OCSP_URL []string,dmcert *x509.Certificate)(CertIsok bool){
     if(len(OCSP_URL) == 0  || OCSP_URL== nil){
-        fmt.Println("        OCSP无法检查吊销状态 |错误原因：证书扩展中没有OCSP URL地址~ ","\n")
+        fmt.Println("        OCSP无法检查吊销状态:None~ ","\n")
         return false
     }
     var cert,issuercert gox509.Certificate
@@ -759,13 +796,13 @@ func CheckOCSP(certid *big.Int,OCSP_URL []string,dmcert *x509.Certificate)(CertI
     issuercert.RawSubject = dmcert.RawIssuer
     reqByte,err := ocsp.CreateRequest(&cert,&issuercert,nil)
     if err != nil {
-        fmt.Println("          OCSP无法检查吊销状态 |错误原因：Error Create the request: ", "\n")
+        fmt.Println("          OCSP无法检查吊销状态 | None ", "\n")
         return false
     }
 
     httpRequest, err2 := http.NewRequest(http.MethodPost, OCSP_URL[0], bytes.NewBuffer(reqByte))
     if err2 != nil {
-        fmt.Println("          OCSP无法检查吊销状态 |错误原因：Error pre-post the request: ", "\n")
+        fmt.Println("          OCSP无法检查吊销状态 |请求失败~ ", "\n")
         return false
     } 
     httpRequest.Header.Add("Content-Type", "application/ocsp-request")
@@ -775,19 +812,19 @@ func CheckOCSP(certid *big.Int,OCSP_URL []string,dmcert *x509.Certificate)(CertI
     httpClient := &http.Client{}
     httpResponse, err3 := httpClient.Do(httpRequest)
     if err3 != nil {
-        fmt.Println("          OCSP无法检查吊销状态 |错误原因：Error post the request: ", "\n")
+        fmt.Println("          OCSP无法检查吊销状态 |上报失败~ ", "\n")
         return false
     }
     defer httpResponse.Body.Close()
     // 读取响应
     output, err4 := ioutil.ReadAll(httpResponse.Body)
     if err4 != nil {
-        fmt.Println("          OCSP无法检查吊销状态 |错误原因：Error Reading the response: ", "\n")
+        fmt.Println("          OCSP无法检查吊销状态 |下载失败~ ", "\n")
         return false
     }
     response,err5 := ocsp.ParseResponse(output,nil)
     if err5 != nil {
-        fmt.Println("          OCSP无法检查吊销状态 |错误原因：Error Parsing the response: ", "\n")
+        fmt.Println("          OCSP无法检查吊销状态 |解析失败~ ", "\n")
         return false
     }
     if(response.Status == 0){
@@ -810,14 +847,14 @@ func CheckOCSP(certid *big.Int,OCSP_URL []string,dmcert *x509.Certificate)(CertI
 //检查证书吊销列表
 func CheckCRL(certid *big.Int,CRL_URL []string)(CertIsok bool){
     if(len(CRL_URL) == 0  || CRL_URL== nil){
-        fmt.Println("CRL无法检查吊销状态 |错误原因：证书扩展中没有CRL URL地址~ ","\n")
+        fmt.Println("CRL无法检查吊销状态 | None~ ","\n")
         return false
     }
     // 发起 HTTP GET 请求
     resp, err := http.Get(CRL_URL[0])
     if err != nil {
         // 如果请求失败，打印错误信息
-        fmt.Println("CRL无法检查吊销状态 |错误原因：Error fetching the URL: ", "\n")
+        fmt.Println("CRL无法检查吊销状态 | 上报失败~ ", "\n")
         return false
     }
     defer resp.Body.Close()
@@ -826,7 +863,7 @@ func CheckCRL(certid *big.Int,CRL_URL []string)(CertIsok bool){
     contents, err := ioutil.ReadAll(resp.Body)
     if err != nil {
         // 如果读取失败，打印错误信息
-        fmt.Println("CRL无法检查吊销状态 |错误原因：Error reading the response: ","\n")
+        fmt.Println("CRL无法检查吊销状态 | 下载失败~ ","\n")
         return false
     }
 
@@ -842,7 +879,7 @@ func CheckCRL(certid *big.Int,CRL_URL []string)(CertIsok bool){
     // 解析CRL数据
     crl, err := x509.ParseCRL(crlBytes)
     if err != nil {
-        fmt.Println("CRL无法检查吊销状态 |错误原因：Failed to parse CRL: ","\n")
+        fmt.Println("CRL无法检查吊销状态 | 解析失败~ ","\n")
         return false
     }
 
@@ -861,14 +898,14 @@ func CheckCRL(certid *big.Int,CRL_URL []string)(CertIsok bool){
 //获取颁发者证书公钥
 func GetSubPublicKey(CRTurl []string)(SubPublicKey interface{}){
     if(len(CRTurl) == 0  || CRTurl== nil){
-        fmt.Println("验证签名： 无法验证签名 |错误原因：证书扩展中没有URL地址，无法找到上级证书链~ ","\n")
+        fmt.Println("验证签名： 无法验证签名 |无法找到上级证书链~ ","\n")
         return nil
     }
     // 发起 HTTP GET 请求
     resp, err := http.Get(CRTurl[0])
     if err != nil {
         // 如果请求失败，打印错误信息
-        fmt.Println("验证签名： 失败 |错误原因：Error fetching the URL: ","\n")
+        fmt.Println("验证签名： 失败 |请求失败无法找到上级证书链~ ","\n")
         return nil
     }
     defer resp.Body.Close()
@@ -877,7 +914,7 @@ func GetSubPublicKey(CRTurl []string)(SubPublicKey interface{}){
     contents, err := ioutil.ReadAll(resp.Body)
     if err != nil {
         // 如果读取失败，打印错误信息
-        fmt.Println("验证签名： 失败 |错误原因：Error reading the response: ","\n")
+        fmt.Println("验证签名： 失败 |服务端数据解析错误~ ","\n")
         return nil
     }
 
@@ -901,18 +938,14 @@ func GetSubPublicKey(CRTurl []string)(SubPublicKey interface{}){
         if(len(dmcacert.IssuingCertificateURL) != 0){
             GetSubPublicKey(dmcacert.IssuingCertificateURL)
         }else{
-            fmt.Println(" 无法链接到可信根证书 | 错误原因：证书扩展中没有颁发者URL地址，无法找到CA的上级证书链。\n")
-            fmt.Println("信任状态： 不可信 (由于无法找到上级证书链 或 Root 根证书不在“受信任的根证书颁发机构”存储区中，所以它不受信任。)\n") 
+            fmt.Println("       CA   -->????????????????????")
+            fmt.Println("信任状态： 不可信 (由于无法找到上级证书链 或 证书链验证失败，所以它不受信任。)\n") 
             return nil
         }
         
     }else{
         fmt.Println("       Root -->",fmt.Sprintf("%x",dmcacert.SubjectKeyId))
-        if(fmt.Sprintf("%x",dmcacert.SubjectKeyId) == "66baba33e30f6ce13cee79f9b203191176136666ef4299d42ed1778d9050e890"){
-           fmt.Println("信任状态： 可信 (此证书成功链接到信任锚[Root根证书])\n")  
-        }else{
-           fmt.Println("信任状态： 不可信 (由于 Root 根证书不在“受信任的根证书颁发机构”存储区中，所以它不受信任。)\n") 
-        }
+        fmt.Println("信任状态： 可信 (此证书已通过信任锚[Root根证书]的验证)\n")  
 
     }
     dmcaPublicKey,err3 := x509.ParsePKIXPublicKey(dmcacert.RawSubjectPublicKeyInfo)
@@ -990,7 +1023,7 @@ func CheckSign(pubkey interface{},PreSignData []byte,SignatureAlgorithm x509.Sig
         result = Hashsm3.Sum(nil)
         result = PreSignData
     default:
-        fmt.Println("验证签名： 失败 |错误原因：未知签名算法\n",SignatureAlgorithm,"\n")
+        fmt.Println("验证签名： 失败 | 未知签名算法\n",SignatureAlgorithm,"\n")
         return false
     }
 
@@ -1017,15 +1050,17 @@ func CheckSign(pubkey interface{},PreSignData []byte,SignatureAlgorithm x509.Sig
 
         var sm2pubkey *sm2.PublicKey
         sm2pubByte,_ := x509.MarshalPKIXPublicKey(pubkey.(*ecdsa.PublicKey))
+
         //拼装SM2公钥HEX
         splitStr := strings.Split(fmt.Sprintf("%x",sm2pubByte), "04")
         if(len(splitStr)==2){
             sm2pub,err := x509.ReadPublicKeyFromHex("04" + splitStr[1])
             if(err != nil){
-                fmt.Println(err)
+                fmt.Println("cw:",err)
             }
             sm2pubkey = sm2pub
         }
+        //fmt.Println(result, Signature)
         certIsok := sm2pubkey.Verify(result, Signature)
         if(certIsok){
             fmt.Println("验证签名： 通过、签名有效\n")

@@ -22,7 +22,7 @@ go build -o ../MAKEROOT MAKEROOT.go sct.go cps.go systemenv.go
 go build -o ../MAKECERT MAKECERT.go sct.go cps.go systemenv.go
 go build -o ../rootGETcrl rootGETcrl.go
 go build -o ../PKI/auto auto.go
-go build -o ../CERTVERIFY CERTVERIFY.go sct.go ctlogs.go
+go build -o ../CERTVERIFY CERTVERIFY.go sct.go sct2.go ctlogs.go
 echo "编译结束"
 echo "如果没有报错就代表编译成功了"
 chmod 7777 ../MAIN
