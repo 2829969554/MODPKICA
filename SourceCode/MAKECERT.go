@@ -1212,8 +1212,8 @@ MODsuanfa:=MODx509.SignatureAlgorithm
  }  
 if(CertIsCA==true){
  MODPolicyIdentifiers = []asn1.ObjectIdentifier{
-    {2,23,140,1,3},//EV扩展代码签名证书
-    {2,23,140,1,1},         //EV扩展域名证书
+    //{2,23,140,1,3},//EV扩展代码签名证书
+    //{2,23,140,1,1},         //EV扩展域名证书
     {2,5,29,32,0},  //所有颁发策略
     {1,3,6,1,4,1,311,10,12,1}, //所有应用策略
 
@@ -1309,15 +1309,17 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
 
 
 
-    /*
+    
     // 创建一个CT预证书扩展
     ctyExtension := pkix.Extension{
         Id:       asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 3},
         Critical: true, //预证书这个必须为true
         Value:    []byte{0x05,0x00},
     }
-*/
+    ctyExtension = ctyExtension
 
+    sctpriid := append(priid,subid[:12]...)
+    sctsubid := append(subid,priid[:12]...)
     //定义SCT结构体
     var mysct,mysct2,mysct3 SCT
     //版本号
@@ -1325,8 +1327,8 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     mysct2.Version = 0
     mysct3.Version = 0
     //证书透明度日志ID
-    mysct.LogID = priid
-    mysct2.LogID = subid
+    mysct.LogID = sctpriid
+    mysct2.LogID = sctsubid
     mysct3.LogID,_ = hex.DecodeString("12f14e34bd53724c840619c38f3f7a13f8e7b56287889c6d300584ebe586263a")
 
     //签署实时数据戳UTC时间，精确到毫秒
@@ -1341,11 +1343,13 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     mysct.Signtype = 3
     mysct2.Signtype = 3
     mysct3.Signtype = 3
+
+    //fmt.Println("A:",len(priid),"B:",len(subid))
     //签名内容
     var SctPublicKey,SctPublicKey1,SctPublicKey2,SctPublicKey3 []byte
-    mysct.Signature = SCTGenerateSignature(priid,subid,&mysct,&SctPublicKey1)
-    mysct2.Signature = SCTGenerateSignature(priid,subid,&mysct2,&SctPublicKey2)
-    mysct3.Signature = SCTGenerateSignature(priid,subid,&mysct3,&SctPublicKey3)
+    mysct.Signature = SCTGenerateSignature(sctpriid,sctsubid,&mysct,&SctPublicKey1)
+    mysct2.Signature = SCTGenerateSignature(sctpriid,sctsubid,&mysct2,&SctPublicKey2)
+    mysct3.Signature = SCTGenerateSignature(sctpriid,sctsubid,&mysct3,&SctPublicKey3)
     SctPublicKey = append(SctPublicKey,SctPublicKey1...)
     SctPublicKey = append(SctPublicKey,[]byte{0x00,0x00}...)
     SctPublicKey = append(SctPublicKey,SctPublicKey2...)
@@ -1361,7 +1365,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     mysct3 = mysct3
     mysctlist = SCTList{
         //将3组SCT结构套在一起
-        SCTs: []SCT{mysct,mysct2},
+        SCTs: []SCT{mysct,mysct2,mysct3},
     }
 
     //生成SCT列表 ASN.1数据  status是状态True|False   sctans1data为 SCT列表的ASN.1数据
@@ -1374,6 +1378,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
         Value:    SctPublicKey,//多个证书用{0x00,0x00}间隔
     }
     ctlogpublickey = ctlogpublickey
+
     // 创建一个CT扩展 证书透明度
     ctExtension := pkix.Extension{
         Id:       asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 2},
@@ -1393,7 +1398,7 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
         cpsTEXT=""
     }
 
-    CaCPSoidlist:= []asn1.ObjectIdentifier{{1,3,6,1,4,1,4146,1,95},{2,5,29,32,0},{1,3,6,1,4,1,311,10,12,1},{2,23,140,1,1},{2,23,140,1,3}}
+    CaCPSoidlist:= []asn1.ObjectIdentifier{{1,3,6,1,4,1,4146,1,95},{2,5,29,32,0},{1,3,6,1,4,1,311,10,12,1}}
     EndtryCPSoidlist:= []asn1.ObjectIdentifier{{1,3,6,1,4,1,4146,1,95},{2,23,140,1,1},{2,23,140,1,3}}
     var OIDListUseNow []asn1.ObjectIdentifier
     
@@ -1417,31 +1422,34 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     }
     
     // 创建一个OCSP MUST装订扩展
-   /* ocspmustExtension := pkix.Extension{
+    ocspmustExtension := pkix.Extension{
         Id:       asn1.ObjectIdentifier{1,3,6,1,5,5,7,1,24},
         Critical: false,
         Value:    []byte{0x30,0x03,0x02,0x01,0x05},
     }
-    */
+    ocspmustExtension = ocspmustExtension
+
     // 创建一个CA版本号扩展 最后一位版本号3.0
     caverExtension := pkix.Extension{
         Id:       asn1.ObjectIdentifier{1,3,6,1,4,1,311,21,1},
         Critical: false,
         Value:    []byte{0x02,0x01,0x03},
     }
-
     caverExtension = caverExtension
+
      // 创建一个关键增强型密钥用法扩展 时间戳专用
     modgjExtension := pkix.Extension{
         Id:       asn1.ObjectIdentifier{2, 5, 29,37},
         Critical: true,
         Value:[]byte{0x30,0x0A,0x06,0x08,0x2B,0x06,0x01,0x05,0x05,0x07,0x03,0x08},
     }
+
     //MOD加入x509扩展
     template.ExtraExtensions = []pkix.Extension{
         //caverExtension,
         //ctyExtension,
         //ctExtension,
+        //ctlogpublickey,
         //noocspExtension,
         //ocspmustExtension,
         cpsExtension,
@@ -1460,8 +1468,8 @@ if(MODML[1]=="initOCSP" || MODML[1]=="initTIMSTAMP"){
     //密钥用法为域名SSL 且不是CA，必须为最终实体 增加CT透明度
     if(CertIsCA==false && len(MODML) >= 6){
         if strings.Contains(MODML[5], "1") || strings.Contains(MODML[5], "2"){
-            //template.ExtraExtensions=append(template.ExtraExtensions,ctExtension)
-            //template.ExtraExtensions=append(template.ExtraExtensions,ctlogpublickey)
+            template.ExtraExtensions=append(template.ExtraExtensions,ctExtension)
+            template.ExtraExtensions=append(template.ExtraExtensions,ctlogpublickey)
         }
     }
 if(MODML[1]=="initTIMSTAMP"){

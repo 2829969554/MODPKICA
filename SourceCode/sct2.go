@@ -145,6 +145,68 @@ func SCT2ParseSCTList(data []byte) (*SignedCertificateTimestampList, error) {
 	return list, nil
 }
 
+/*
+func SCT2VerifySCT(sct *SignedCertificateTimestamp, cert *x509.Certificate, isPrecert bool, issuerKeyHash [32]byte, logPublicKey *ecdsa.PublicKey) (bool, error) {
+    // 构造正确的签名数据
+    var signedData []byte
+    signedData = append(signedData, sct.Version)
+    signedData = append(signedData, sct.LogID[:]...)
+    
+    // 时间戳（大端序）
+    timestamp := make([]byte, 8)
+    binary.BigEndian.PutUint64(timestamp, sct.Timestamp)
+    signedData = append(signedData, timestamp...)
+
+    if isPrecert {
+        // 预证书处理
+        signedData = append(signedData, 0x00, 0x01) // PrecertEntry
+        
+        // 添加IssuerKeyHash
+        signedData = append(signedData, issuerKeyHash[:]...)
+        
+        // 获取TBSCertificate（需从预证书中提取）
+        tbsCert, err := SCT2extractTBSCertificate(cert.Raw)
+        if err != nil {
+            return false, err
+        }
+        
+        // 计算TBSCertificate哈希
+        tbsHash := sha256.Sum256(tbsCert)
+        signedData = append(signedData, tbsHash[:]...)
+    } else {
+        // 普通证书处理
+        signedData = append(signedData, 0x00, 0x00) // X509Entry
+        
+        // 计算整个证书哈希（包括SCT列表）
+        certHash := sha256.Sum256(cert.Raw)
+        signedData = append(signedData, certHash[:]...)
+    }
+    
+    signedData = append(signedData, sct.Extensions...)
+    
+    // 验证签名（ECDSA示例）
+    var esig struct{ R, S *big.Int }
+    if _, err := asn1.Unmarshal(sct.Signature.Data, &esig); err != nil {
+        return false, err
+    }
+    
+    hash := sha256.Sum256(signedData)
+    return ecdsa.Verify(logPublicKey, hash[:], esig.R, esig.S), nil
+}
+
+// 从DER编码证书中提取TBSCertificate
+func SCT2extractTBSCertificate(der []byte) ([]byte, error) {
+    var cert struct {
+        TBSCertificate asn1.RawContent
+        // 其他字段忽略
+    }
+    _, err := asn1.Unmarshal(der, &cert)
+    return cert.TBSCertificate, err
+}
+
+
+*/
+
 
 //显示单个SCT数据
 func demo1() {

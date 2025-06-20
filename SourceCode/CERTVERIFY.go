@@ -34,6 +34,37 @@ gox509 "modpkica/golib/x509"
 )
 
 
+// generateKeyIdentifier 生成密钥标识符，通常是公钥的 SHA-1 哈希值
+func generateKeyIdentifier_PKCS1(publicKey interface{},publicKeyDER []byte) []byte {
+    switch pub := publicKey.(type) {
+
+    case *rsa.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算rsa公钥的哈希值
+        hash3 := sha1.New()
+        hash3.Write(gox509.MarshalPKCS1PublicKey(pub))
+        return hash3.Sum(nil)
+
+    case *ecdsa.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算ecdsa公钥的哈希值
+        hash := sha1.New()
+        ak:= elliptic.Marshal(pub.Curve,pub.X,pub.Y)
+        hash.Write(ak)
+        return hash.Sum(nil)
+
+    case *sm2.PublicKey:
+        // 使用 RFC-SHA-1 哈希算法计算sm2公钥的哈希值
+        hash3 := sha1.New()
+        hash3.Write(elliptic.Marshal(pub.Curve,pub.X,pub.Y))
+        return hash3.Sum(nil)
+
+    default:
+        hash3 := sha1.New()
+        hash3.Write(publicKeyDER)
+        return hash3.Sum(nil)
+    }
+}
+
+
 func showIssuerOrSubject(RawIssuer []byte){  // DER encoded Issuer
 
     issuerRDNSequence := pkix.RDNSequence{}
@@ -541,6 +572,7 @@ func main(){
         }
     }
 
+
     ShowPkixExtension(dmcert.Extensions,dmcert.SubjectKeyId,dmcert.AuthorityKeyId,dmcert)
 
     fmt.Println("\n\n")
@@ -573,8 +605,11 @@ func main(){
   hashsha256:=sha256.New()
   hashsha256.Write(dmcert.RawSubjectPublicKeyInfo)
   Pubkeysha256:=hashsha256.Sum(nil)
+
+  RFCdmcertPublicKey,_ := x509.ParsePKIXPublicKey(dmcert.RawSubjectPublicKeyInfo)
   fmt.Println("")
   fmt.Println("密钥 Id 哈希(SHA1)          ： ",fmt.Sprintf("%x",Pubkeysha1))
+  fmt.Println("密钥 Id 哈希(RFC-SHA1)      ： ",fmt.Sprintf("%x",generateKeyIdentifier_PKCS1(RFCdmcertPublicKey,dmcert.RawSubjectPublicKeyInfo)))
   fmt.Println("密钥 Id 哈希(Pin-SHA256)    ： ",base64.StdEncoding.EncodeToString(Pubkeysha256))
   fmt.Println("密钥 Id 哈希(Pin-SHA256-Hex)： ",fmt.Sprintf("%x",Pubkeysha256))
   fmt.Println("\n")
@@ -605,6 +640,13 @@ func main(){
 
 //解析X509扩展-未知属性OID
 func ShowPkixExtension(data interface{},UserPublicKeySH256 []byte,IssuerPublicKeySH256 []byte,dmcert *x509.Certificate){
+    if(len(UserPublicKeySH256) != 32){
+        UserPublicKeySH256 = append(UserPublicKeySH256,IssuerPublicKeySH256[:12]...)
+    }
+    if(len(IssuerPublicKeySH256) != 32){
+        IssuerPublicKeySH256 = append(IssuerPublicKeySH256,UserPublicKeySH256[:12]...) 
+    }
+    //fmt.Println("a:",len(IssuerPublicKeySH256),len(UserPublicKeySH256))
     var SCTPublicKeyBytes [][]byte
     var PublicSCTs []SCT
     myexts, ok := data.([]pkix.Extension);
@@ -735,7 +777,7 @@ if  ok2 == false  {
             fmt.Println("    日志标识符 :",fmt.Sprintf("%x", PublicSCTs[Ei].LogID))
             fmt.Println("        序列号 :",fmt.Sprintf("%x", TimestampHexBytes))
             fmt.Println("        SHA256 :",fmt.Sprintf("%x", hash[:]))
-            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[1:]) == true){
+            if(ecdsa.VerifyASN1(pubkey.(*ecdsa.PublicKey),hash[:],PublicSCTs[Ei].Signature[:]) == true){
                 fmt.Println("      验证状态 : 此SCT签名有效。")
             }else{
                 fmt.Println("       验证状态: 无效签名，此SCT签名无法验证。")  
