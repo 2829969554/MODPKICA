@@ -69,6 +69,7 @@ MODPKI_ROOTGETCRLEXE:=MODTC+"/"+MODPKICAENVFileName[4]
 MODPKI_OCSPfile:=MODTC+"/PKI/OCSP/ocsp.crt"
 MODPKI_OCSPfilekey:=MODTC+"/PKI/OCSP/ocsp.key"
 MODPKI_OCSPCAs:=MODTC+"/PKI/CA/"   //{uid}.crt //{uid}.key
+MODPKI_OCSPROOTs:=MODTC+"/PKI/ROOT/"   //{uid}.crt //{uid}.key
 //时间戳服务
 MODTIMSTAMPdir:=MODTC+"/PKI/TIMSTAMP/"   //时间戳服务根目录
 MODTIMSTAMPlogdir:=MODTIMSTAMPdir+"/log/" //时间戳req进 rsa出log日志目录
@@ -226,8 +227,14 @@ fmt.Print(suijiNonce)
 	MODPKI_OCSPfilekey=MODPKI_OCSPCAs+Cbfcid+".key"
 
 	if _, err2 := os.Stat(MODPKI_OCSPfile); err2 != nil { 
-		MODPKI_OCSPfile=MODTC+"/PKI/ROOT/root.crt"
-		MODPKI_OCSPfilekey=MODTC+"/PKI/ROOT/root.key"
+
+		MODPKI_OCSPfile=MODPKI_OCSPROOTs+Cbfcid+".crt"
+		MODPKI_OCSPfilekey=MODPKI_OCSPROOTs+Cbfcid+".key"
+
+		if _, err3 := os.Stat(MODPKI_OCSPfile); err3 != nil { 
+			MODPKI_OCSPfile=MODTC+"/PKI/ROOT/root.crt"
+			MODPKI_OCSPfilekey=MODTC+"/PKI/ROOT/root.key"
+		}
 	}
 
 	// 读取现有OCSP的证书和私钥文件
@@ -507,8 +514,14 @@ fmt.Print(suijiNonce)
 	MODPKI_OCSPfilekey=MODPKI_OCSPCAs+Cbfcid+".key"
 
 	if _, err2 := os.Stat(MODPKI_OCSPfile); err2 != nil { 
-		MODPKI_OCSPfile=MODTC+"/PKI/ROOT/root.crt"
-		MODPKI_OCSPfilekey=MODTC+"/PKI/ROOT/root.key"
+
+		MODPKI_OCSPfile=MODPKI_OCSPROOTs+Cbfcid+".crt"
+		MODPKI_OCSPfilekey=MODPKI_OCSPROOTs+Cbfcid+".key"
+
+		if _, err3 := os.Stat(MODPKI_OCSPfile); err3 != nil { 
+			MODPKI_OCSPfile=MODTC+"/PKI/ROOT/root.crt"
+			MODPKI_OCSPfilekey=MODTC+"/PKI/ROOT/root.key"
+		}
 	}
 
 	// 读取现有OCSP的证书和私钥文件
