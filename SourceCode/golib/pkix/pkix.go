@@ -37,6 +37,8 @@ var attributeTypeNames = map[string]string{
 	"1.3.6.1.4.1.311.60.2.1.2":"EVCITY",
 	"1.3.6.1.4.1.311.60.2.1.3":"EVCT",
 	"1.2.840.113549.1.9.1":"EMAIL",
+	"1.3.6.1.4.1.311.60.2.1.1":"EVCITY1",
+	"2.5.4.97":"EVUID",
 }
 
 // String returns a string representation of the sequence r,
@@ -129,7 +131,7 @@ type Name struct {
 	Locality, Province                        []string
 	StreetAddress, PostalCode                 []string
 	SerialNumber, CommonName                  string
-	EVTYPE, EVCITY,EVCT,EMAIL                 []string
+	EVTYPE, EVCITY,EVCT,EMAIL, EVCITY1,EVUID                 []string
 	// Names contains all parsed attributes. When parsing distinguished names,
 	// this can be used to extract non-standard attributes that are not parsed
 	// by this package. When marshaling to RDNSequences, the Names field is
@@ -187,6 +189,10 @@ func (n *Name) FillFromRDNSequence(rdns *RDNSequence) {
 					n.EVCT = append(n.EVCT, value)
 				case 21:
 					n.EMAIL = append(n.EMAIL, value)
+				case 22:
+					n.EVCITY1 = append(n.EVCITY1, value)
+				case 23:
+					n.EVUID = append(n.EVUID, value)
 				}
 			}
 		}
@@ -207,6 +213,8 @@ var (
 	oidEVCITY         = []int{1,3,6,1,4,1,311,60,2,1,2}
 	oidEVCT         = []int{1,3,6,1,4,1,311,60,2,1,3}
 	oidEMAIL		= []int{1,2,840,113549,1,9,1}
+	oidEVCITY1         = []int{1,3,6,1,4,1,311,60,2,1,1}
+	oidEVUID         = []int{2,5,4,97}
 )
 
 // appendRDNs appends a relativeDistinguishedNameSET to the given RDNSequence
@@ -251,6 +259,8 @@ func (n Name) ToRDNSequence() (ret RDNSequence) {
 	ret = n.appendRDNs(ret, n.EVCITY, oidEVCITY)
 	ret = n.appendRDNs(ret, n.EVCT, oidEVCT)
 	ret = n.appendRDNs(ret, n.EMAIL, oidEMAIL)
+	ret = n.appendRDNs(ret, n.EVCITY1, oidEVCITY1)
+	ret = n.appendRDNs(ret, n.EVUID, oidEVUID)
 	if len(n.CommonName) > 0 {
 		ret = n.appendRDNs(ret, []string{n.CommonName}, oidCommonName)
 	}

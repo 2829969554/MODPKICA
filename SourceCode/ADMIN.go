@@ -324,11 +324,11 @@ if(MODML[1]=="signCERT" || MODML[1]=="signcert" || MODML[1]=="signcrt" || MODML[
 	fmt.Println("")
 	fmt.Print("请输入将要颁发的证书类型(0:最终实体 1:中间CA)：")
 	fmt.Scanln(&certtype) 
-	quetimemath:=13
+	quetimemath:=15
 	if(certtype=="1"){
 		quetimemath=9
 	}else{
-		quetimemath=13
+		quetimemath=15
 	}
 	question := []string{
 		"请输入证书公共名称(CN): ",
@@ -343,9 +343,11 @@ if(MODML[1]=="signCERT" || MODML[1]=="signcert" || MODML[1]=="signcrt" || MODML[
 		"邮箱号码(EMAIL):",
 		"EV扩展验证证书 注册国家(EVCT):",
 		"EV扩展验证证书 注册地区(EVCITY):",
-		"EV扩展验证证书 注册类型(EVTYPE) 例如Private Organization:",
+		"EV扩展验证证书 注册城市(EVCITY1):",
+		"EV扩展验证证书 注册类型(EVTYPE) 例如Private Organization、Government Entity、\n Business Entity、Non‑Commercial Entity:",
+		"EV扩展验证证书 实体标识符(EVUID):",
 	}
-	questionid := []string{"CN", "O", "OU", "C", "S", "L", "STREET", "PostalCode", "SERIALNUMBER","EMAIL","EVCT","EVCITY","EVTYPE"}
+	questionid := []string{"CN", "O", "OU", "C", "S", "L", "STREET", "PostalCode", "SERIALNUMBER","EMAIL","EVCT","EVCITY","EVCITY1","EVTYPE","EVUID"}
 
  scanner := bufio.NewScanner(os.Stdin)  
  var inputs []string  

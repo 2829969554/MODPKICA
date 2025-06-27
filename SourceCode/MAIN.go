@@ -94,6 +94,7 @@ cmd.CombinedOutput()
 //*********************************************************************************
 //HTTP /OCSP在线证书状态协议监听函数
 
+
 http.HandleFunc("/OCSP", func(w http.ResponseWriter, r *http.Request) {
 if(r.Method!="POST"){
 	fmt.Fprint(w,"/OCSP:在线证书状态协议查询接口：仅支持POST方式访问")
@@ -374,6 +375,286 @@ return
 
 })
 
+
+http.HandleFunc("/ocsp", func(w http.ResponseWriter, r *http.Request) {
+if(r.Method!="POST"){
+	fmt.Fprint(w,"/OCSP:在线证书状态协议查询接口：仅支持POST方式访问")
+	return
+}
+
+//REQ为OCSP请求的ANS.1编码
+REQ,err:=ioutil.ReadAll(r.Body)  
+if err != nil {
+	fmt.Println("OCSP:ERROR ioutil.read")
+	return 
+}
+//ocspNonceOID := asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 48, 1, 2} 
+last18Bytes := REQ[len(REQ) -18:]
+var ocspNonce []byte
+if(last18Bytes[0]==0x04 && last18Bytes[1]==0x10){
+	ocspNonce=REQ[len(REQ) -16:]
+}
+
+  
+ err = ioutil.WriteFile(MODTC+"/PKI/OCSP/ocsp.req", REQ, 0644) // 将数据写入文件  
+ if err != nil {  
+ fmt.Println("写入文件时发生错误:", err)  
+ return  
+ }   
+
+
+//res ans.1解码后的数据
+res,err:=ocsp.ParseRequest(REQ)
+if err != nil {
+	fmt.Println("OCSP:ERROR JIE XI")
+	return 
+}
+
+
+ // 打开证书状态列表 CERTS.txt 
+ file, err := os.Open(MODPKI_certsfile)  
+ if err != nil {  
+ fmt.Println("无法打开文件:", err)  
+ return  
+ }  
+ defer file.Close()  
+  
+ // 创建一个Scanner来读取文件内容  
+ reader := bufio.NewReader(file)  
+ Cstatus:="N"
+ Cponse:=0
+ Ctime := time.Now()
+ Cbfcid:=""
+    // 循环读取每一行  
+    for{  
+        line, err := reader.ReadString('\n')  
+        if err != nil {  
+            break 
+        } 
+        if(line[0]=='#'){
+            continue
+        }
+         // 使用空格分隔每行文本  
+         fields := strings.Split(line," ")  
+         // 输出分隔后的结果  
+         //fmt.Println(fields[0],fields[2],fields[3])
+         if(fields[0]==res.SerialNumber.Text(16)){
+         	//状态码V：正常  R：吊销   N：未知
+         	Cstatus=fields[2]
+         	Cbfcid=rftrn(fields[5])
+             num2, err2 := strconv.Atoi(fields[3])  
+             if err2 != nil {  
+             fmt.Println("转换失败:", err2)  
+             } 
+
+             //吊销原因或者状态原因编号0-9
+             Cponse=num2
+
+             // 定义一个日期时间字符串  
+             dateTimeStr := rftrn(fields[4])
+              
+             // 使用time包中的Parse函数将字符串解析为time.Time类型  
+             layout := "2006/01/02-15:04:05"
+             parsedTime, err := time.Parse(layout, dateTimeStr)  
+             if err != nil {  
+                 fmt.Println("解析日期时间失败:", err)  
+                 return  
+             }
+             //签发时间或者注销时间
+             Ctime =parsedTime
+         	break
+         } 
+ 
+    } 
+CEstatus:=2
+    if(Cstatus=="N"){
+    	if(len(ocspNonce)==16){
+			log.Println("OCSP:未知证书,序列号",res.SerialNumber.Text(16),"Nonce",hex.EncodeToString(ocspNonce)) 
+		}else{
+			log.Println("OCSP:未知证书,序列号",res.SerialNumber.Text(16))
+		}
+    	
+    	CEstatus=2
+    }
+    if(Cstatus=="V"){
+    	if(len(ocspNonce)==16){
+			log.Println("OCSP:证书正常,序列号",res.SerialNumber.Text(16),"Nonce",hex.EncodeToString(ocspNonce)) 
+		}else{
+			log.Println("OCSP:证书正常,序列号",res.SerialNumber.Text(16))
+		}
+    	CEstatus=0
+    }
+    if(Cstatus=="R"){
+    	if(len(ocspNonce)==16){
+			log.Println("OCSP:证书已吊销,序列号",res.SerialNumber.Text(16),"Nonce",hex.EncodeToString(ocspNonce)) 
+		}else{
+			log.Println("OCSP:证书已吊销,序列号",res.SerialNumber.Text(16))
+		}
+    	CEstatus=1
+    }
+
+
+suijiNonce:=pkix.Extension{
+        Id:       asn1.ObjectIdentifier{1,3,6,1,5,5,7,48,1,2},
+        Critical: false,
+        Value:    last18Bytes,//ocspNonce,
+}
+/*
+fmt.Print(suijiNonce)
+*/
+
+	MODPKI_OCSPfile=MODPKI_OCSPCAs+Cbfcid+".crt"
+	MODPKI_OCSPfilekey=MODPKI_OCSPCAs+Cbfcid+".key"
+
+	if _, err2 := os.Stat(MODPKI_OCSPfile); err2 != nil { 
+		MODPKI_OCSPfile=MODTC+"/PKI/ROOT/root.crt"
+		MODPKI_OCSPfilekey=MODTC+"/PKI/ROOT/root.key"
+	}
+
+	// 读取现有OCSP的证书和私钥文件
+	ocspcertBytes, err := ioutil.ReadFile(MODPKI_OCSPfile)
+	if err != nil {
+		fmt.Println("Error reading OCSP certificate:", err)
+		return
+	}
+
+	ocspkeyBytes, err := ioutil.ReadFile(MODPKI_OCSPfilekey)
+	if err != nil {
+		fmt.Println("Error reading OCSP key:", err)
+		return
+	}
+
+	// 解析证书和私钥
+	ocspcertBlock, _ := pem.Decode(ocspcertBytes)
+	ocspcert, err := x509.ParseCertificate(ocspcertBlock.Bytes)
+	if err != nil {
+		fmt.Println("Error parsing  OCSP certificate:", err)
+		return
+	}
+
+	ocspkeyBlock, _ := pem.Decode(ocspkeyBytes)
+
+	var ECCocspprivKey *ecdsa.PrivateKey
+	var RSAocspprivKey *rsa.PrivateKey
+	Keytype := "RSA"
+
+	if(ocspkeyBlock.Type == "EC PRIVATE KEY"){
+		//ECDSA类型私钥
+		Keytype = "ECC"
+		ocspprivKey, err := x509.ParseECPrivateKey(ocspkeyBlock.Bytes)
+		ECCocspprivKey = ocspprivKey
+		if err != nil {
+			fmt.Println("ECC Error parsing OCSP private key:", err)
+			return
+		}
+	}
+	if(ocspkeyBlock.Type == "RSA PRIVATE KEY"){
+		//RSA类型私钥
+		Keytype = "RSA"
+		ocspprivKey, err := x509.ParsePKCS1PrivateKey(ocspkeyBlock.Bytes)
+		RSAocspprivKey = ocspprivKey
+		if err != nil {
+			fmt.Println("RSA Error parsing OCSP private key:", err)
+			return
+		}
+	}	
+	if(ocspkeyBlock.Type == "SM2 PRIVATE KEY"){
+		//RSA类型私钥
+		Keytype = "SM2"
+		fmt.Println("ERROR：暂不支持国密OCSP协议！")
+		if err != nil {
+			fmt.Println("SM2 Error parsing OCSP private key:", err)
+			return
+		}
+	}	
+	
+
+
+
+	MODPKI_ROOTfile=MODPKI_OCSPfile
+	// 读取现有颁发者的证书
+	ROOTcertBytes, err := ioutil.ReadFile(MODPKI_ROOTfile)
+	if err != nil {
+		fmt.Println("Error reading ROOT certificate:", err)
+		return
+	}
+	// 解析ROOT证书
+	rootBlock, _ := pem.Decode(ROOTcertBytes)
+	rootcert, err := x509.ParseCertificate(rootBlock.Bytes)
+	if err != nil {
+		fmt.Println("Error parsing  ROOT certificate:", err)
+		return
+	}
+
+
+
+// 创建OCSP响应对象模板  
+ ocspResp := ocsp.Response{  
+	 RevocationReason:Cponse,
+	 SignatureAlgorithm:x509.SHA256WithRSA,
+	 ProducedAt:time.Now().UTC(),
+	 ThisUpdate:time.Now().UTC().Add(-10 * time.Minute),
+	 NextUpdate:time.Now().UTC().Add(10 * time.Minute),
+	 RevokedAt:Ctime.UTC(),
+	 //IssuerHash:0,
+	 //Extensions:[]pkix.Extension{suijiNonce},
+	 //ExtraExtensions:[]pkix.Extension{suijiNonce},
+	 Certificate:ocspcert,
+	 Status:  CEstatus,   //0,1,2 {Good, Revoked, Unknown}这里假设状态为"good"，你可以根据实际情况修改这个值。其他可选状态包括：ocsp.Revoked、ocsp.Unknown。  
+	 SerialNumber: res.SerialNumber, // 设置响应的序列号，与证书的序列号相同。如果OCSP请求中指定了序列号，则应该与证书的序列号匹配。  
+	 
+ } 
+
+
+//判断是否具有OCSP Nonice信息，如果有动态填充该信息
+if(len(ocspNonce) >5 ){
+	ocspResp.ExtraExtensions = []pkix.Extension{suijiNonce}
+}
+
+
+ //给OCSP响应对象模板签名转ANS.1数据[]byte（使用证书和私钥作为签名者）
+var ocspRespBytes []byte
+if(Keytype == "RSA"){
+	ocspResp.SignatureAlgorithm=x509.SHA1WithRSA
+ 	ocspRespBytestmp, err := ocsp.CreateResponse(rootcert,ocspcert , ocspResp, RSAocspprivKey) // 创建OCSP响应的字节数据，返回响应的字节数据和错误（如果有的话）  
+	 if err != nil {  
+	 fmt.Println(
+	 	"Error creating OCSP response:", err)  
+	 return  
+	 } 
+	 ocspRespBytes = ocspRespBytestmp
+}
+if(Keytype == "ECC"){
+	ocspResp.SignatureAlgorithm=x509.ECDSAWithSHA1
+ 	ocspRespBytestmp, err := ocsp.CreateResponse(rootcert,ocspcert , ocspResp, ECCocspprivKey) // 创建OCSP响应的字节数据，返回响应的字节数据和错误（如果有的话）  
+	 if err != nil {  
+	 fmt.Println(
+	 	"Error creating OCSP response:", err)  
+	 return  
+	 } 
+	 ocspRespBytes = ocspRespBytestmp
+}
+if(Keytype == "SM2"){
+		fmt.Println("ERROR：暂不支持国密OCSP协议！")
+		return 
+}
+	 w.Header().Set("Content-Type", "application/ocsp-response") 
+	 w.Header().Set("Content-Length", strconv.FormatInt(int64(len(ocspRespBytes)), 10) ) 
+	 //w.:用http响应将数据输出
+  _, err = w.Write(ocspRespBytes)  
+			 if err != nil {  
+			 	http.Error(w, "Failed to write response", http.StatusInternalServerError)  
+			 	return  
+			 } 
+ err = ioutil.WriteFile(MODTC+"/PKI/OCSP/ocsp.res", ocspRespBytes, 0644)  
+if err != nil {  
+    fmt.Println("Error saving OCSP response:", err)  
+    return  
+} 
+return
+
+
+})
 
 //***********************************************************
 

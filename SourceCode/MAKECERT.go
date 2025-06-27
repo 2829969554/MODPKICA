@@ -546,7 +546,12 @@ if(MODML[1] == "initOCSP" || MODML[1] == "initTIMSTAMP"){
         if(key=="EVCT"){
             MODname.EVCT=      []string{value}
         }
-
+        if(key=="EVCITY1"){
+            MODname.EVCITY1=      []string{value}
+        }
+        if(key=="EVUID"){
+            MODname.EVUID=      []string{value}
+        }
         //****************** 
          } else {  
             fmt.Println("未知主题信息:", substring)  
