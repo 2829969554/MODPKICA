@@ -36,6 +36,7 @@ import (
 
 //*************主线程 main 入口******************************
 var GOBALMODTC string
+
 func main() {
 
  ex, err := os.Executable()  
@@ -830,13 +831,13 @@ http.HandleFunc("/timestamp", func(w http.ResponseWriter, r *http.Request) {
     if(len(parts)==2){
     	data=data[len(data)-(len(parts[1])-2):]
     }else{
-    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x82")
+    	//fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x82")
 	     parts = bytes.Split(data, []byte{0x04, 0x81})  
 
 	    if(len(parts)==2){
 	    	data=data[len(data)-(len(parts[1])-1):]
 	    }else{
-	    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x81")
+	    	//fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x81")
 		     parts = bytes.Split(data, []byte{0x04, 0x83})  
 
 		    if(len(parts)==2){
@@ -938,13 +939,13 @@ http.HandleFunc("/timestamp/sha1", func(w http.ResponseWriter, r *http.Request) 
     if(len(parts)==2){
     	data=data[len(data)-(len(parts[1])-2):]
     }else{
-    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x82")
+    	//fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x82")
 	     parts = bytes.Split(data, []byte{0x04, 0x81})  
 
 	    if(len(parts)==2){
 	    	data=data[len(data)-(len(parts[1])-1):]
 	    }else{
-	    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x81")
+	    	//fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x81")
 		     parts = bytes.Split(data, []byte{0x04, 0x83})  
 
 		    if(len(parts)==2){
@@ -1150,7 +1151,8 @@ TSACERTsha256key:=MODTIMSTAMPdir+"sha256.key"
         fmt.Println("解析失败，当前请求不是RFC3161文档签名")
         return
     }
-    
+    //fmt.Println("RFC3161请求",parsedRequest)
+
 // 读取证书和私钥文件
 //SHA1
 
@@ -1168,25 +1170,36 @@ TSACERTsha256key:=MODTIMSTAMPdir+"sha256.key"
     // 解码 PEM 格式的证书和私钥
     TSASHA1CRTblock, _ := pem.Decode(TSAsha1certPEM)
     if TSASHA1CRTblock == nil {
-        http.Error(w, "Error decoding certificate PEM", http.StatusInternalServerError)
+        http.Error(w, "SHA1 Error decoding certificate PEM", http.StatusInternalServerError)
+        fmt.Println("SHA1 Error decoding certificate PEM", http.StatusInternalServerError)
         return
     }
     TSASHA1cert, err := x509.ParseCertificate(TSASHA1CRTblock.Bytes)
+
+    if(TSASHA1cert == nil){
+      log.Println("时间戳签名 加载SHA1 TSA证书失败，目前时间戳服务器不支持SM2证书。")
+    }
+   
     if err != nil {
-        http.Error(w, "Error parsing certificate", http.StatusInternalServerError)
+        http.Error(w, "SHA1 Error parsing certificate", http.StatusInternalServerError)
+        fmt.Println("SHA1 Error parsing certificate", http.StatusInternalServerError)
         return
     }
+
+    
+
     TSASHA1KEYblock,_:= pem.Decode(TSAsha1keyPEM)
     if TSASHA1KEYblock == nil {
-        http.Error(w, "Error decoding private key PEM", http.StatusInternalServerError)
+        http.Error(w, "SHA1 Error decoding private key PEM", http.StatusInternalServerError)
+        fmt.Println("SHA1 Error decoding private key PEM", http.StatusInternalServerError)
         return
     }
     TSASHA1privateKey, err := x509.ParsePKCS1PrivateKey(TSASHA1KEYblock.Bytes)
     if err != nil {
-        http.Error(w, "Error parsing private key", http.StatusInternalServerError)
+        http.Error(w, "SHA1 Error parsing private key", http.StatusInternalServerError)
+        fmt.Println("SHA1 Error parsing private key", http.StatusInternalServerError)
         return
     }
-
 
 
 
@@ -1205,25 +1218,45 @@ TSACERTsha256key:=MODTIMSTAMPdir+"sha256.key"
     // 解码 PEM 格式的证书和私钥
     TSASHA256CRTblock, _ := pem.Decode(TSAsha256certPEM)
     if TSASHA256CRTblock == nil {
-        http.Error(w, "Error decoding certificate PEM", http.StatusInternalServerError)
+        http.Error(w, "SHA256 Error decoding certificate PEM", http.StatusInternalServerError)
+        fmt.Println("SHA256 Error decoding certificate PEM", http.StatusInternalServerError)
         return
     }
+
     TSASHA256cert, err := x509.ParseCertificate(TSASHA256CRTblock.Bytes)
+
+    if(TSASHA256cert == nil){
+      log.Println("时间戳签名 加载SHA256 TSA证书失败，目前时间戳服务器不支持SM2证书。")
+    }
+
     if err != nil {
-        http.Error(w, "Error parsing certificate", http.StatusInternalServerError)
+        http.Error(w, "SHA256 Error parsing certificate", http.StatusInternalServerError)
+        fmt.Println("SHA256 Error decoding private key PEM", http.StatusInternalServerError)
         return
     }
     TSASHA256KEYblock,_:= pem.Decode(TSAsha256keyPEM)
     if TSASHA256KEYblock == nil {
-        http.Error(w, "Error decoding private key PEM", http.StatusInternalServerError)
+        http.Error(w, "SHA256 Error decoding private key PEM", http.StatusInternalServerError)
+        fmt.Println("SHA256 Error decoding private key PEM", http.StatusInternalServerError)
         return
     }
     TSASHA256privateKey, err := x509.ParsePKCS1PrivateKey(TSASHA256KEYblock.Bytes)
     if err != nil {
-        http.Error(w, "Error parsing private key", http.StatusInternalServerError)
+        http.Error(w, "SHA256 Error parsing private key", http.StatusInternalServerError)
+        fmt.Println("SHA256 Error parsing private key", http.StatusInternalServerError)
         return
     }
-     
+	MODPKI_ROOTfile = MODPKI_ROOTfile
+
+	//通过当前证书序列号获取颁发者数据号，加载颁发者证书进RFC3161时间戳证书链
+	issid := getissidfromsubid(TSASHA256cert.SerialNumber.Text(16))
+	if(issid != "null"){
+		MODPKI_ROOTfile = GOBALMODTC + "/PKI/CERT/" + issid + ".crt"
+	}
+
+    
+    
+
     ROOTcertPEM, err := ioutil.ReadFile(MODPKI_ROOTfile)
     if err != nil {
         fmt.Println("ROOT签名证书加载失败！") 
@@ -1232,16 +1265,24 @@ TSACERTsha256key:=MODTIMSTAMPdir+"sha256.key"
 
     ROOTCRTblock, _ := pem.Decode(ROOTcertPEM)
     if ROOTCRTblock == nil {
-        http.Error(w, "Error decoding certificate PEM", http.StatusInternalServerError)
+        http.Error(w, "ROOTCA Error decoding certificate PEM", http.StatusInternalServerError)
+        fmt.Println("ROOTCA Error decoding certificate PEM", http.StatusInternalServerError)
         return
     }
+
     ROOTcert, err := x509.ParseCertificate(ROOTCRTblock.Bytes)
+
+    if(ROOTcert == nil){
+      log.Println("时间戳签名 加载ROOT TSA证书失败，目前时间戳服务器不支持SM2证书。")
+    }
+
     if err != nil {
-        http.Error(w, "Error parsing certificate", http.StatusInternalServerError)
+        http.Error(w, "ROOTCA Error parsing certificate", http.StatusInternalServerError)
+        fmt.Println("ROOTCA Error parsing certificate", http.StatusInternalServerError)
         return
     }
     
-   
+
     var response timestamp.Timestamp
     resthistime:=time.Now()
     Duration,_:=time.ParseDuration("1s")
@@ -1299,4 +1340,45 @@ TSACERTsha256key:=MODTIMSTAMPdir+"sha256.key"
     w.Header().Set("Content-Length",  strconv.Itoa(len(timestampa))) 
     w.Write(timestampa)  
       
+}
+
+/*
+函数名:getissidfromsubid
+作 用：通过当前证书的序列号获取上级证书的序列号。失败返回字符串 null。
+*/
+func getissidfromsubid(subid string) (string){
+	MODPKI_certsfile:=GOBALMODTC + "/PKI/CERTS.txt"
+	// 打开证书状态列表 CERTS.txt 
+	 file, err := os.Open(MODPKI_certsfile)  
+	 if err != nil {  
+	 fmt.Println("无法打开文件:", err)  
+	 return "null"  
+	 }  
+	 defer file.Close()  
+	  
+	 // 创建一个Scanner来读取文件内容  
+	 reader := bufio.NewReader(file)  
+
+	    // 循环读取每一行  
+	    for{  
+	        line, err := reader.ReadString('\n')  
+	        if err != nil {  
+	            break 
+	        } 
+	        if(line[0]=='#'){
+	            continue
+	        }
+	         // 使用空格分隔每行文本  
+	         fields := strings.Split(line," ")  
+	         // 输出分隔后的结果  
+	         //fmt.Println(fields[0],fields[2],fields[3])
+	         //res.SerialNumber.Text(16)
+	         if(fields[0]== subid ){
+	         	return fields[5]
+	         	break
+	         } 
+	 
+	    }
+
+	    return "null" 
 }
