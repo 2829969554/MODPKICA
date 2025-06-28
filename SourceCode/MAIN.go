@@ -823,7 +823,7 @@ http.HandleFunc("/timestamp", func(w http.ResponseWriter, r *http.Request) {
 		 	return  
 		}
 		
-		reqbody:=data  //时间戳请求原始数据
+		reqbody:=data  //时间戳请求原始数据zz
 		data=decodedBytes  //Authenticode签名
      parts := bytes.Split(data, []byte{0x04, 0x82})  
 
@@ -831,7 +831,21 @@ http.HandleFunc("/timestamp", func(w http.ResponseWriter, r *http.Request) {
     	data=data[len(data)-(len(parts[1])-2):]
     }else{
     	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x82")
-    	return
+	     parts = bytes.Split(data, []byte{0x04, 0x81})  
+
+	    if(len(parts)==2){
+	    	data=data[len(data)-(len(parts[1])-1):]
+	    }else{
+	    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x81")
+		     parts = bytes.Split(data, []byte{0x04, 0x83})  
+
+		    if(len(parts)==2){
+		    	data=data[len(data)-(len(parts[1])-3):]
+		    }else{
+		    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x83")
+		    	return
+		    }
+	    }
     }
     
 
@@ -925,7 +939,21 @@ http.HandleFunc("/timestamp/sha1", func(w http.ResponseWriter, r *http.Request) 
     	data=data[len(data)-(len(parts[1])-2):]
     }else{
     	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x82")
-    	return
+	     parts = bytes.Split(data, []byte{0x04, 0x81})  
+
+	    if(len(parts)==2){
+	    	data=data[len(data)-(len(parts[1])-1):]
+	    }else{
+	    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x81")
+		     parts = bytes.Split(data, []byte{0x04, 0x83})  
+
+		    if(len(parts)==2){
+		    	data=data[len(data)-(len(parts[1])-3):]
+		    }else{
+		    	fmt.Println("SHA 256 Authenticode报错找不到关键0x04 0x83")
+		    	return
+		    }
+	    }
     }
 
 	// 生成 Authenticode 签名 digitype 1 : sha1  2:sha256   3:sha384  4:sha512
