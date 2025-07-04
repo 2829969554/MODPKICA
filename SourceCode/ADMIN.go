@@ -716,7 +716,7 @@ if(MODML[1]=="verifyCERT"  || MODML[1]=="verify" || MODML[1]=="verifycert"){
 }
 
 if(MODML[1]=="VERSION" || MODML[1]=="version"  || MODML[1]=="ver"  || MODML[1]=="VER"){
-	fmt.Println("MOD PKI CA 6.0 \r\n Version:202505042215")
+	fmt.Println("MOD PKI CA 6.0 \r\n Version:202507042356")
 	os.Exit(0)
 }
 

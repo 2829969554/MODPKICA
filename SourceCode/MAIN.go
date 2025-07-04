@@ -336,6 +336,7 @@ fmt.Print(suijiNonce)
 //判断是否具有OCSP Nonice信息，如果有动态填充该信息
 if(len(ocspNonce) >5 ){
 	ocspResp.ExtraExtensions = []pkix.Extension{suijiNonce}
+	ocspResp.Extensions = []pkix.Extension{suijiNonce}
 }
 
 

@@ -121,6 +121,7 @@ type responseData struct {
 	RawResponderID asn1.RawValue
 	ProducedAt     time.Time `asn1:"generalized"`
 	Responses      []singleResponse
+	Extensions     []pkix.Extension `asn1:"explicit,tag:1,optional"` // 新增
 }
 
 type singleResponse struct {
@@ -688,6 +689,8 @@ func CreateResponse(issuer, responderCert *x509.Certificate, template Response, 
 		return nil, err
 	}
 
+
+
 	if template.IssuerHash == 0 {
 		template.IssuerHash = crypto.SHA1
 	}
@@ -706,6 +709,14 @@ func CreateResponse(issuer, responderCert *x509.Certificate, template Response, 
 	h.Reset()
 	h.Write(issuer.RawSubject)
 	issuerNameHash := h.Sum(nil)
+	mynonice := template.ExtraExtensions
+	//asn1.ObjectIdentifier{1,3,6,1,5,5,7,48,1,2}
+	//检测到Nonice则添加到全局扩展（responseExtensions）中，禁止载入到 singleExtensions中。
+	if(len(template.ExtraExtensions) >= 1){
+		if(template.ExtraExtensions[0].Id[0] == 1 && template.ExtraExtensions[0].Id[1] == 3 && template.ExtraExtensions[0].Id[9] == 2){
+			template.ExtraExtensions = []pkix.Extension{}
+		}
+	}
 
 	innerResponse := singleResponse{
 		CertID: certID{
@@ -745,7 +756,10 @@ func CreateResponse(issuer, responderCert *x509.Certificate, template Response, 
 		RawResponderID: rawResponderID,
 		ProducedAt:     time.Now().Truncate(time.Minute).UTC(),
 		Responses:      []singleResponse{innerResponse},
+		Extensions:     mynonice,
 	}
+
+//fmt.Println(mynonice)
 
 	tbsResponseDataDER, err := asn1.Marshal(tbsResponseData)
 	if err != nil {
