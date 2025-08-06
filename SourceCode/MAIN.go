@@ -22,6 +22,9 @@ import (
 	"os/exec"
 	//"golang.org/x/crypto/ocsp"
 	"modpkica/golib/ocsp"  //如果提示没有此包就需要手动复制Go包，详情请查看ReadMe.txt
+	"modpkica/golib/smocsp" //sm2 ocsp专用
+	"modpkica/golib/modcrypto/gm/sm2"
+	smx509 "modpkica/golib/modcrypto/x509"
 	"crypto/rsa"
 	"crypto/ecdsa"
 	"encoding/base64"  
@@ -255,6 +258,14 @@ fmt.Print(suijiNonce)
 	ocspcertBlock, _ := pem.Decode(ocspcertBytes)
 	ocspcert, err := x509.ParseCertificate(ocspcertBlock.Bytes)
 	if err != nil {
+		//这是OCSP
+		if(err.Error() != "x509: unsupported elliptic curve"){
+			fmt.Println("Error parsing  OCSP certificate:", err)
+			return
+		}
+	}
+	smocspcert, err := smx509.ParseCertificate(ocspcertBlock.Bytes)
+	if err != nil {
 		fmt.Println("Error parsing  OCSP certificate:", err)
 		return
 	}
@@ -263,6 +274,7 @@ fmt.Print(suijiNonce)
 
 	var ECCocspprivKey *ecdsa.PrivateKey
 	var RSAocspprivKey *rsa.PrivateKey
+	var SM2ocspprivKey *sm2.PrivateKey
 	Keytype := "RSA"
 
 	if(ocspkeyBlock.Type == "EC PRIVATE KEY"){
@@ -286,9 +298,10 @@ fmt.Print(suijiNonce)
 		}
 	}	
 	if(ocspkeyBlock.Type == "SM2 PRIVATE KEY"){
-		//RSA类型私钥
+		//SM2类型私钥
 		Keytype = "SM2"
-		fmt.Println("ERROR：暂不支持国密OCSP协议！")
+		ocspprivKey, err :=sm2.ParsePrivateKey(ocspkeyBlock.Bytes)
+		SM2ocspprivKey = ocspprivKey
 		if err != nil {
 			fmt.Println("SM2 Error parsing OCSP private key:", err)
 			return
@@ -309,10 +322,16 @@ fmt.Print(suijiNonce)
 	rootBlock, _ := pem.Decode(ROOTcertBytes)
 	rootcert, err := x509.ParseCertificate(rootBlock.Bytes)
 	if err != nil {
+		if(err.Error() != "x509: unsupported elliptic curve"){
+			fmt.Println("Error parsing  ROOT certificate:", err)
+			return
+		}
+	}
+	smrootcert, err := smx509.ParseCertificate(rootBlock.Bytes)
+	if err != nil {
 		fmt.Println("Error parsing  ROOT certificate:", err)
 		return
 	}
-
 
 
 // 创建OCSP响应对象模板  
@@ -356,15 +375,43 @@ if(Keytype == "ECC"){
 	ocspResp.SignatureAlgorithm=x509.ECDSAWithSHA1
  	ocspRespBytestmp, err := ocsp.CreateResponse(rootcert,ocspcert , ocspResp, ECCocspprivKey) // 创建OCSP响应的字节数据，返回响应的字节数据和错误（如果有的话）  
 	 if err != nil {  
-	 fmt.Println(
-	 	"Error creating OCSP response:", err)  
+	 fmt.Println("Error creating OCSP response:", err)  
 	 return  
 	 } 
 	 ocspRespBytes = ocspRespBytestmp
 }
 if(Keytype == "SM2"){
-		fmt.Println("ERROR：暂不支持国密OCSP协议！")
-		return 
+// 创建OCSP响应对象模板  
+ smocspResp := smocsp.Response{  
+	 RevocationReason:Cponse,
+	 SignatureAlgorithm:smx509.SM2WithSM3,
+	 ProducedAt:time.Now().UTC(),
+	 ThisUpdate:time.Now().UTC().Add(-10 * time.Minute),
+	 NextUpdate:time.Now().UTC().Add(10 * time.Minute),
+	 RevokedAt:Ctime.UTC(),
+	 //IssuerHash:0,
+	 //Extensions:[]pkix.Extension{suijiNonce},
+	 //ExtraExtensions:[]pkix.Extension{suijiNonce},
+	 Certificate:smocspcert,
+	 Status:  CEstatus,   //0,1,2 {Good, Revoked, Unknown}这里假设状态为"good"，你可以根据实际情况修改这个值。其他可选状态包括：ocsp.Revoked、ocsp.Unknown。  
+	 SerialNumber: res.SerialNumber, // 设置响应的序列号，与证书的序列号相同。如果OCSP请求中指定了序列号，则应该与证书的序列号匹配。  
+	 
+ } 
+
+
+	//判断是否具有OCSP Nonice信息，如果有动态填充该信息
+	if(len(ocspNonce) >5 ){
+		smocspResp.ExtraExtensions = []pkix.Extension{suijiNonce}
+		smocspResp.Extensions = []pkix.Extension{suijiNonce}
+	}
+
+	smocspResp.SignatureAlgorithm=smx509.SM2WithSM3
+ 	ocspRespBytestmp, err := smocsp.CreateResponse(smrootcert,smocspcert , smocspResp,SM2ocspprivKey, SM2ocspprivKey) // 创建OCSP响应的字节数据，返回响应的字节数据和错误（如果有的话）  
+	 if err != nil {  
+	 fmt.Println("Error creating OCSP response:", err)  
+	 return  
+	 } 
+	 ocspRespBytes = ocspRespBytestmp
 }
 	 w.Header().Set("Content-Type", "application/ocsp-response") 
 	 w.Header().Set("Content-Length", strconv.FormatInt(int64(len(ocspRespBytes)), 10) ) 
@@ -543,6 +590,16 @@ fmt.Print(suijiNonce)
 	ocspcertBlock, _ := pem.Decode(ocspcertBytes)
 	ocspcert, err := x509.ParseCertificate(ocspcertBlock.Bytes)
 	if err != nil {
+		//这是ocsp
+
+		if(err.Error() != "x509: unsupported elliptic curve"){
+			fmt.Println("Error parsing  OCSP certificate:", err)
+			return
+		}
+
+	}
+	smocspcert, err := smx509.ParseCertificate(ocspcertBlock.Bytes)
+	if err != nil {
 		fmt.Println("Error parsing  OCSP certificate:", err)
 		return
 	}
@@ -551,6 +608,7 @@ fmt.Print(suijiNonce)
 
 	var ECCocspprivKey *ecdsa.PrivateKey
 	var RSAocspprivKey *rsa.PrivateKey
+	var SM2ocspprivKey *sm2.PrivateKey
 	Keytype := "RSA"
 
 	if(ocspkeyBlock.Type == "EC PRIVATE KEY"){
@@ -574,9 +632,10 @@ fmt.Print(suijiNonce)
 		}
 	}	
 	if(ocspkeyBlock.Type == "SM2 PRIVATE KEY"){
-		//RSA类型私钥
+		//SM2类型私钥
 		Keytype = "SM2"
-		fmt.Println("ERROR：暂不支持国密OCSP协议！")
+		ocspprivKey, err :=sm2.ParsePrivateKey(ocspkeyBlock.Bytes)
+		SM2ocspprivKey = ocspprivKey
 		if err != nil {
 			fmt.Println("SM2 Error parsing OCSP private key:", err)
 			return
@@ -597,16 +656,22 @@ fmt.Print(suijiNonce)
 	rootBlock, _ := pem.Decode(ROOTcertBytes)
 	rootcert, err := x509.ParseCertificate(rootBlock.Bytes)
 	if err != nil {
+		if(err.Error() != "x509: unsupported elliptic curve"){
+			fmt.Println("Error parsing  ROOT certificate:", err)
+			return
+		}
+	}
+	smrootcert, err := smx509.ParseCertificate(rootBlock.Bytes)
+	if err != nil {
 		fmt.Println("Error parsing  ROOT certificate:", err)
 		return
 	}
 
 
-
 // 创建OCSP响应对象模板  
  ocspResp := ocsp.Response{  
 	 RevocationReason:Cponse,
-	 SignatureAlgorithm:x509.SHA256WithRSA,
+	 SignatureAlgorithm:x509.SHA1WithRSA,
 	 ProducedAt:time.Now().UTC(),
 	 ThisUpdate:time.Now().UTC().Add(-10 * time.Minute),
 	 NextUpdate:time.Now().UTC().Add(10 * time.Minute),
@@ -624,6 +689,7 @@ fmt.Print(suijiNonce)
 //判断是否具有OCSP Nonice信息，如果有动态填充该信息
 if(len(ocspNonce) >5 ){
 	ocspResp.ExtraExtensions = []pkix.Extension{suijiNonce}
+	ocspResp.Extensions = []pkix.Extension{suijiNonce}
 }
 
 
@@ -643,15 +709,43 @@ if(Keytype == "ECC"){
 	ocspResp.SignatureAlgorithm=x509.ECDSAWithSHA1
  	ocspRespBytestmp, err := ocsp.CreateResponse(rootcert,ocspcert , ocspResp, ECCocspprivKey) // 创建OCSP响应的字节数据，返回响应的字节数据和错误（如果有的话）  
 	 if err != nil {  
-	 fmt.Println(
-	 	"Error creating OCSP response:", err)  
+	 fmt.Println("Error creating OCSP response:", err)  
 	 return  
 	 } 
 	 ocspRespBytes = ocspRespBytestmp
 }
 if(Keytype == "SM2"){
-		fmt.Println("ERROR：暂不支持国密OCSP协议！")
-		return 
+// 创建OCSP响应对象模板  
+ smocspResp := smocsp.Response{  
+	 RevocationReason:Cponse,
+	 SignatureAlgorithm:smx509.SM2WithSM3,
+	 ProducedAt:time.Now().UTC(),
+	 ThisUpdate:time.Now().UTC().Add(-10 * time.Minute),
+	 NextUpdate:time.Now().UTC().Add(10 * time.Minute),
+	 RevokedAt:Ctime.UTC(),
+	 //IssuerHash:0,
+	 //Extensions:[]pkix.Extension{suijiNonce},
+	 //ExtraExtensions:[]pkix.Extension{suijiNonce},
+	 Certificate:smocspcert,
+	 Status:  CEstatus,   //0,1,2 {Good, Revoked, Unknown}这里假设状态为"good"，你可以根据实际情况修改这个值。其他可选状态包括：ocsp.Revoked、ocsp.Unknown。  
+	 SerialNumber: res.SerialNumber, // 设置响应的序列号，与证书的序列号相同。如果OCSP请求中指定了序列号，则应该与证书的序列号匹配。  
+	 
+ } 
+
+
+	//判断是否具有OCSP Nonice信息，如果有动态填充该信息
+	if(len(ocspNonce) >5 ){
+		smocspResp.ExtraExtensions = []pkix.Extension{suijiNonce}
+		smocspResp.Extensions = []pkix.Extension{suijiNonce}
+	}
+
+	smocspResp.SignatureAlgorithm=smx509.SM2WithSM3
+ 	ocspRespBytestmp, err := smocsp.CreateResponse(smrootcert,smocspcert , smocspResp,SM2ocspprivKey, SM2ocspprivKey) // 创建OCSP响应的字节数据，返回响应的字节数据和错误（如果有的话）  
+	 if err != nil {  
+	 fmt.Println("Error creating OCSP response:", err)  
+	 return  
+	 } 
+	 ocspRespBytes = ocspRespBytestmp
 }
 	 w.Header().Set("Content-Type", "application/ocsp-response") 
 	 w.Header().Set("Content-Length", strconv.FormatInt(int64(len(ocspRespBytes)), 10) ) 
@@ -670,6 +764,7 @@ return
 
 
 })
+
 
 //***********************************************************
 

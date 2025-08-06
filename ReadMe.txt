@@ -122,9 +122,13 @@ VERSION ---------------------------------查看当前MODPKICA版本号
 -------------------------------------------------------------------
 建立时间2023年12月9日 22:33   作者：@魔帝本尊  QQ:2829969554  
 **********************************************************************
-最新版本: MODPKICA 6.0 202507042356
+最新版本: MODPKICA 6.0 202508062240
 
 更新日志：
+		2025年08月06日 22:40
+		1.SourceCode\golib路径下增加smocsp\smocsp.go文件（此文件由SourceCode\golib\ocsp\ocsp.go改进而来），用于生成OCSP响应数据，使用SM2签名，SM3数据摘要。
+		2.MAIN.go增加 HTTP SM2 OCSP响应应答接口
+		
 		2025年07月04日 23:56
 		1.SourceCode\golib\ocsp\ocsp.go文件添加全局扩展：responseData结构体加入 Extensions     []pkix.Extension `asn1:"explicit,tag:1,optional"`
 		  我做出部分代码调整，因为原 suijiNonce 位置不符合RFC6960标准，期望 Nonce 出现在响应的 responseExtensions 区域，但我将其放在了 Response Single Extensions（单证书扩展区域）。

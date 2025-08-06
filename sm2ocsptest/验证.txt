@@ -1,0 +1,1 @@
+openssl ocsp -issuer ocsp.crt -CAfile castore.crt -cert cli.crt -url http://localhost:80/ocsp -resp_text -no_nonce -noverify

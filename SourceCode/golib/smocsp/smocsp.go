@@ -747,11 +747,13 @@ func CreateResponse(issuer, responderCert *x509.Certificate, template Response, 
 	if err != nil {
 		return nil, err
 	}
+	hashFunc = hashFunc //bug
+
 
 	responseHash := sm3.New()
 	responseHash.Write(tbsResponseDataDER)
 
-	signature, err := sm2.Sign(rand.Reader,sm2pri, responseHash.Sum(nil), hashFunc)
+	signature, err := sm2.Sign(rand.Reader,sm2pri, responseHash.Sum(nil), nil)
 	if err != nil {
 		return nil, err
 	}
