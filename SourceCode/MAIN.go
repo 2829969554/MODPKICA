@@ -774,7 +774,11 @@ return
 	//监听网站目录/CRL 和 CRT
 	
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		 filePath := r.URL.String() 
+		 filePath := r.URL.String()
+		 filePath = strings.TrimSuffix(filePath, "%20")
+		 
+		 //fmt.Println(filePath)
+
 		 if(filePath=="/ocsp" || filePath=="/ocsp/"  || filePath=="/OCSP/"){
 		 	 w.Header().Set("Location", "/OCSP")  
 			 w.WriteHeader(http.StatusMovedPermanently)
