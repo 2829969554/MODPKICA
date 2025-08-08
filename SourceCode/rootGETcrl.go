@@ -187,6 +187,10 @@ func modmakecrl(ctype string,IssureID string,MODPKI_rootdir string,MODPKI_cadir 
              if err2 != nil {  
              fmt.Println("转换失败:", err2)  
              }  
+
+             if(len(fields[0]) % 2 != 0){
+                fields[0] = "0" + fields[0]
+             }
              num, err := strconv.ParseInt(fields[0],16,64)  
              if err != nil {  
               fmt.Println("转换失败:", err)   

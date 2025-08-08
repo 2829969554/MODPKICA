@@ -152,6 +152,7 @@ var (
 	oidSignatureSM3WithSM9      = asn1.ObjectIdentifier{1,2,156,10197,1,502}
 	oidSignatureSM3WithRSA      = asn1.ObjectIdentifier{1,2,156,10197,1,504}
 	oidSM2      				= asn1.ObjectIdentifier{1,2,156,10197,1,301}
+	oidSM3      				= asn1.ObjectIdentifier{1,2,156,10197,1,401}
 )
 
 
@@ -413,8 +414,13 @@ func ParseRequest(bytes []byte) (*Request, error) {
 	innerRequest := req.TBSRequest.RequestList[0]
 
 	hashFunc := getHashAlgorithmFromOID(innerRequest.Cert.HashAlgorithm.Algorithm)
-	if hashFunc == crypto.Hash(0) {
-		return nil, ParseError("OCSP request uses unknown hash function")
+	if(fmt.Sprintf("%x",innerRequest.Cert.HashAlgorithm.Algorithm) ==  fmt.Sprintf("%x",asn1.ObjectIdentifier{1,2,156,10197,1,401})){
+		hashFunc = crypto.MD4
+	}else{
+		if hashFunc == crypto.Hash(0) {
+			//注释掉此行代码，如何OCSP请求的摘要算法是什么都无需理会，按照证书实体的签名算法进行。
+			//return nil, ParseError("OCSP request uses unknown hash function")
+		}
 	}
 
 	return &Request{
@@ -753,7 +759,7 @@ func CreateResponse(issuer, responderCert *x509.Certificate, template Response, 
 	responseHash := sm3.New()
 	responseHash.Write(tbsResponseDataDER)
 
-	signature, err := sm2.Sign(rand.Reader,sm2pri, responseHash.Sum(nil), nil)
+	signature, err := sm2.SignBytes(rand.Reader,sm2pri, responseHash.Sum(nil), nil)
 	if err != nil {
 		return nil, err
 	}

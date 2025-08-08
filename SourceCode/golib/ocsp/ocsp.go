@@ -436,9 +436,17 @@ func ParseRequest(bytes []byte) (*Request, error) {
 	innerRequest := req.TBSRequest.RequestList[0]
 
 	hashFunc := getHashAlgorithmFromOID(innerRequest.Cert.HashAlgorithm.Algorithm)
-	if hashFunc == crypto.Hash(0) {
-		return nil, ParseError("OCSP request uses unknown hash function")
+	if(fmt.Sprintf("%x",innerRequest.Cert.HashAlgorithm.Algorithm) ==  fmt.Sprintf("%x",asn1.ObjectIdentifier{1,2,156,10197,1,401})){
+		hashFunc = crypto.MD4
+	}else{
+		if hashFunc == crypto.Hash(0) {
+			//注释掉此行代码，如何OCSP请求的摘要算法是什么都无需理会，按照证书实体的签名算法进行。
+			//return nil, ParseError("OCSP request uses unknown hash function")
+		}
 	}
+	
+
+
 
 	return &Request{
 		HashAlgorithm:  hashFunc,

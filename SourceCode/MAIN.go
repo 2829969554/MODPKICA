@@ -130,7 +130,7 @@ if(last18Bytes[0]==0x04 && last18Bytes[1]==0x10){
 //res ans.1解码后的数据
 res,err:=ocsp.ParseRequest(REQ)
 if err != nil {
-	fmt.Println("OCSP:ERROR JIE XI")
+	fmt.Println("OCSP:ERROR JIE XI",err)
 	return 
 }
 
@@ -462,7 +462,7 @@ if(last18Bytes[0]==0x04 && last18Bytes[1]==0x10){
 //res ans.1解码后的数据
 res,err:=ocsp.ParseRequest(REQ)
 if err != nil {
-	fmt.Println("OCSP:ERROR JIE XI")
+	fmt.Println("OCSP:ERROR JIE XI",err)
 	return 
 }
 
@@ -791,13 +791,14 @@ return
 		 }
 		 /* 更新太快了，暂时屏蔽改为main启动时刷新CRL一次
 		 //判断左边是不是/CRL，如果是就刷新
-		 if strings.HasPrefix(filePath, "/CRL") {  
+		 */
+		 if strings.HasPrefix(filePath, "/CRL") || strings.HasPrefix(filePath, "/crl") {  
 		  	 // 创建一个*Cmd对象，表示要执行的命令  
 			cmd := exec.Command(MODPKI_ROOTGETCRLEXE,)  				  
 			// 运行命令并等待它完成  
 			 cmd.CombinedOutput()  
 		 }
-		 */
+		 
 
 		 //将请求URL/CRT/root.crt中的/转为/
 		 filePath = strings.Replace(filePath, "/", "//", -1)  
