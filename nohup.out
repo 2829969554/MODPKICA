@@ -1,0 +1,58 @@
+MOD PKI CA Server is running on http://localhost:16880
+MOD PKI CA 服务端启动: http://localhost:16880
+MOD PKI CA 网页管理端 服务启动: http://localhost:16880/ADMIN
+MOD PKI CA 颁发者授权信息 服务启动: http://localhost:16880/CRT
+MOD PKI CA 颁发者吊销列表 服务启动: http://localhost:16880/CRL
+MOD PKI CA OCSP服务启动: http://localhost:16880/OCSP
+MOD PKI CA 微软Authenticode时间戳SHA1     服务启动: http://localhost:16880/timestamp/sha1
+MOD PKI CA 微软Authenticode时间戳SHA256   服务启动: http://localhost:16880/timestamp
+MOD PKI CA RFC3161文档(PDF)签名专用时间戳(SHA1&SHA256自适应)  服务启动: http://localhost:16880/rfc3161
+MOD PKI CA 监听端口  :16880
+如需修改配置请编辑./PKI/CONFIG.txt文件
+本程序作者：@魔帝本尊  QQ：2829969554
+MOD PKI CA SERVER支持x.509 证书管理、CRL吊销列表、时间戳服务器、OCSP在线状态协议、自动化签发。
+本系统仅供学习 x.509 ASN.1编码使用。作者不承担任何由此产生的一切问题。
+2025/10/22 20:02:43 授权信息访问 CRL分发点 URL /crl/13fbe8656c0732a.crl
+2025/10/22 20:02:43 授权信息访问 CRL分发点 URL /crl/13fbe8656c0732a.der.crl
+2025/10/22 20:02:45 授权信息访问 证书颁发机构颁发者 URL /crt/13fbe8656c0732a.crt
+2025/10/22 20:03:12 授权信息访问 证书颁发机构颁发者 URL /crt/13fbe8656c0728b.crt
+2025/10/22 20:03:26 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:26 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:29 授权信息访问 证书颁发机构颁发者 URL /crt/13fbe8656c0728b.crt
+2025/10/22 20:03:30 授权信息访问 证书颁发机构颁发者 URL /crt/13fbe8656c0728b.crt
+2025/10/22 20:03:31 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:31 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:31 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:31 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:31 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:31 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:32 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:32 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:32 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:32 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:32 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:32 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:33 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:33 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:33 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:33 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:38 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:38 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:39 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:39 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:39 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:39 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:40 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:40 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:03:40 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.crl
+2025/10/22 20:03:40 授权信息访问 CRL分发点 URL /crl/13fbe8656c0728b.der.crl
+2025/10/22 20:05:04 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:05 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:05 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:06 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:07 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:07 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:07 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:07 OCSP:证书正常,序列号 13fbe8656c0728b
+2025/10/22 20:05:40 OCSP:证书正常,序列号 13fbe8656c0732a
+2025/10/22 20:05:45 OCSP:证书正常,序列号 13fbe8656c0732a
